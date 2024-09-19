@@ -28,10 +28,13 @@ export default function LinkTab() {
     setExtractionStatus(ExtractionStatusType.idle);
 
     try {
-      const response = await fetch("/api/extract", {
-        method: "POST",
-        body: new URLSearchParams({ url }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/extract`,
+        {
+          method: "POST",
+          body: new URLSearchParams({ url }),
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();

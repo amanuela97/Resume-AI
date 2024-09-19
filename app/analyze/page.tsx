@@ -29,10 +29,13 @@ export default function Analyze() {
     formData.append("jobDescription", jobDescription);
 
     try {
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/analyze`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();
