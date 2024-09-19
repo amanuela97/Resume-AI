@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import * as cheerio from "cheerio";
-import puppeteer from "puppeteer-core";
+import puppeteer, { Browser } from "puppeteer-core";
 import chromium from "@sparticuz/chromium-min";
 
 const urlSchema = z.string().url();
@@ -18,17 +18,14 @@ export async function POST(request: Request) {
 
   try {
     const isLocal = process.env.LOCAL_ENV;
-    let browser;
+    let browser: Browser;
     if (isLocal) {
-      console.log("local");
       // if we are running locally, use the puppeteer that is installed in the node_modules folder
       browser = await require("puppeteer").launch();
     } else {
       // if we are running in AWS, download and use a compatible version of chromium at runtime
-      console.log("serverless");
       browser = await puppeteer.launch({
         args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
-        defaultViewport: chromium.defaultViewport,
         executablePath: await chromium.executablePath(
           `https://github.com/Sparticuz/chromium/releases/download/v127.0.0/chromium-v127.0.0-pack.tar`
         ),
@@ -36,8 +33,24 @@ export async function POST(request: Request) {
         ignoreHTTPSErrors: true,
       });
     }
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out")), 9000)
+    );
+
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "domcontentloaded" });
+    const fetchDataPromise = page.goto(url, {
+      waitUntil: "domcontentloaded",
+      timeout: 10000,
+    });
+    await Promise.race([timeoutPromise, fetchDataPromise]);
+    await page.setRequestInterception(true);
+    page.on("request", (req) => {
+      if (["image", "stylesheet", "font"].includes(req.resourceType())) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
 
     const content = await page.content();
     await browser.close();
