@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "@/app/components/Navbar"; // Ensure the correct import path
 import DataLoader from "@/app/components/DataLoader";
+import Footer from "./components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default function RootLayout({
         <Navbar />
         <DataLoader>{children}</DataLoader>
         <ToastContainer />
+        <Footer />
       </body>
     </html>
   );
