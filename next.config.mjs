@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  webpack: (config, { isServer }) => {
+    // Exclude .map files
+    config.module.rules.push({
+      test: /\.map$/,
+      use: "null-loader", // Tells Webpack to ignore these files
+    });
+
+    return config;
+  },
   images: {
     remotePatterns: [
       {

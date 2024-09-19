@@ -6,6 +6,13 @@ import { LLMResult } from "@langchain/core/outputs";
 import officeParser from "officeparser";
 import { z } from "zod";
 import { FILE_TYPES } from "@/app/utils/constants";
+import fs from "fs";
+import path from "path";
+
+const tempDir = path.join("/tmp", "officeParserTemp", "tempfiles");
+
+// Ensure the directory exists
+fs.mkdirSync(tempDir, { recursive: true });
 
 export async function POST(request: Request) {
   // Check for OPENAI_API_KEY
@@ -35,7 +42,9 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     if (FILE_TYPES.includes(file.type)) {
-      const parsedFile = await officeParser.parseOfficeAsync(buffer);
+      const parsedFile = await officeParser.parseOfficeAsync(buffer, {
+        tempFilesLocation: tempDir,
+      });
       fileText = parsedFile;
     } else {
       return NextResponse.json(

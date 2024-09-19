@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 const urlSchema = z.string().url();
 
@@ -16,7 +17,25 @@ export async function POST(request: Request) {
   }
 
   try {
-    const browser = await puppeteer.launch();
+    const isLocal = process.env.LOCAL_ENV;
+    let browser;
+    console.log(isLocal);
+    if (isLocal) {
+      console.log("local");
+      // if we are running locally, use the puppeteer that is installed in the node_modules folder
+      browser = await require("puppeteer").launch();
+    } else {
+      // if we are running in AWS, download and use a compatible version of chromium at runtime
+      console.log("aws");
+      const executablePath = await chromium.executablePath();
+      console.log(executablePath);
+      browser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: executablePath,
+        headless: true,
+      });
+    }
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "domcontentloaded" });
 
