@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     );
 
     const page = await browser.newPage();
+    console.log(await page.browser().version());
     const fetchDataPromise = page.goto(url, {
       waitUntil: "domcontentloaded",
       timeout: 10000,
