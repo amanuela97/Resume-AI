@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     } else {
       // if we are running in AWS, download and use a compatible version of chromium at runtime
       console.log("serverless");
-      puppeteer.launch({
+      browser = await puppeteer.launch({
         args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
         defaultViewport: chromium.defaultViewport,
         executablePath: await chromium.executablePath(
