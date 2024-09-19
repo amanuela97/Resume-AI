@@ -6,7 +6,7 @@ import {
   GoogleAuthProvider,
   User,
 } from "firebase/auth";
-import { getFirestore, doc, setDoc, collection } from "firebase/firestore";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { Analysis } from "./types";
 
