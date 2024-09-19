@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Analyses, Analysis, ExtractionStatusType } from "./utils/types";
+import { Analyses, Analysis } from "./utils/types";
 import { User } from "firebase/auth";
 
 interface AppState {
@@ -9,7 +9,6 @@ interface AppState {
   analyses: Analyses; // Add analyses state
   isLoading: boolean;
   isExtracting: boolean; // Add isExtracting state
-  extractionStatus: ExtractionStatusType; // Add extractionStatus state
   user: User | null;
   setFile: (file: File | null) => void;
   setJobDescription: (description: string) => void;
@@ -18,7 +17,6 @@ interface AppState {
   deleteAnalysis: (id: string) => void; // Add deleteAnalysis action
   setIsLoading: (isLoading: boolean) => void;
   setIsExtracting: (isExtracting: boolean) => void; // Add setIsExtracting action
-  setExtractionStatus: (status: ExtractionStatusType) => void; // Add setExtractionStatus action
   setUser: (user: User | null) => void;
 }
 
@@ -29,7 +27,6 @@ export const useAppStore = create<AppState>((set) => ({
   analyses: [], // Initialize analyses as an empty array
   isLoading: false,
   isExtracting: false, // Initialize isExtracting as false
-  extractionStatus: ExtractionStatusType.idle, // Initialize extractionStatus
   user: null, // Initialize user as null
   setFile: (file: File | null) => set({ file }),
   setJobDescription: (jobDescription: string) => set({ jobDescription }),
@@ -41,7 +38,5 @@ export const useAppStore = create<AppState>((set) => ({
     })), // Implement deleteAnalysis action
   setIsLoading: (isLoading: boolean) => set({ isLoading }),
   setIsExtracting: (isExtracting: boolean) => set({ isExtracting }), // Implement setIsExtracting action
-  setExtractionStatus: (status: ExtractionStatusType) =>
-    set({ extractionStatus: status }), // Implement setExtractionStatus action
   setUser: (user: User | null) => set({ user }),
 }));

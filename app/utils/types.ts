@@ -13,10 +13,4 @@ export type Analysis = AnalysisResponseType["analysis"] & {
   userId: string;
 };
 
-export enum ExtractionStatusType {
-  idle = "idle",
-  success = "success",
-  fail = "fail",
-}
-
 export type Analyses = Analysis[];
