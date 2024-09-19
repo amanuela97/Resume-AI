@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import * as cheerio from "cheerio";
 import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import chromium from "@sparticuz/chromium-min";
 
 const urlSchema = z.string().url();
 
@@ -19,21 +19,21 @@ export async function POST(request: Request) {
   try {
     const isLocal = process.env.LOCAL_ENV;
     let browser;
-    console.log(isLocal);
     if (isLocal) {
       console.log("local");
       // if we are running locally, use the puppeteer that is installed in the node_modules folder
       browser = await require("puppeteer").launch();
     } else {
       // if we are running in AWS, download and use a compatible version of chromium at runtime
-      console.log("aws");
-      const executablePath = await chromium.executablePath();
-      console.log(executablePath);
-      browser = await puppeteer.launch({
-        args: chromium.args,
+      console.log("serverless");
+      puppeteer.launch({
+        args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
         defaultViewport: chromium.defaultViewport,
-        executablePath: executablePath,
+        executablePath: await chromium.executablePath(
+          `https://github.com/Sparticuz/chromium/releases/download/v127.0.0/chromium-v127.0.0-pack.tar`
+        ),
         headless: true,
+        ignoreHTTPSErrors: true,
       });
     }
     const page = await browser.newPage();

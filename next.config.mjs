@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: [
+      "puppeteer-core",
+      "@sparticuz/chromium-min",
+    ],
+  },
   webpack: (config, { isServer }) => {
     // Exclude .map files
     config.module.rules.push({
