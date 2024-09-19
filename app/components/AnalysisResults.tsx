@@ -15,7 +15,7 @@ import { saveAnalysisToFirestore } from "../utils/firebase"; // Import the save 
 import DownloadButton from "@/app/components/DownloadButton"; // Import the DownloadButton component
 import { toast } from "react-toastify";
 import { Analysis } from "@/app//utils/types";
-import { uuid } from "uuidv4";
+import { v4 as uuidv4 } from "uuid";
 
 type analysisType = Omit<Analysis, "id" | "name" | "userId"> | null;
 type AnalysisResultsProp = {
@@ -49,7 +49,7 @@ export default function AnalysisResults({ analysis }: AnalysisResultsProp) {
     }
 
     try {
-      const id = uuid();
+      const id = uuidv4();
       await saveAnalysisToFirestore({
         ...analysis,
         name: analysisName,
