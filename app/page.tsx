@@ -15,7 +15,7 @@ export default function Home() {
       if (user) {
         await storeUserData(user);
         setUser(user);
-        router.push("/analyze");
+        router.push("/create");
       }
     } catch (error) {
       console.error("Error signing in with Google:", error);
@@ -33,7 +33,7 @@ export default function Home() {
         </p>
         {user ? (
           <button
-            onClick={() => router.push("/analyze")}
+            onClick={() => router.push("/create")}
             className="w-fit px-6 py-2bg-primary-light text-gray-800 hover:bg-card/80 focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 transition-colors"
           >
             Start Using Resume AI

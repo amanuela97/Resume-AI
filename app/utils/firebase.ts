@@ -6,9 +6,17 @@ import {
   GoogleAuthProvider,
   User,
 } from "firebase/auth";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { Analysis } from "./types";
+import { Analysis, CoverLetter } from "./types";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -74,12 +82,45 @@ export const storeUserData = async (user: User) => {
 };
 
 export const saveAnalysisToFirestore = async (analysis: Analysis) => {
-  const db = getFirestore();
-  const analysisRef = doc(db, "analyses", analysis.id);
+  if (!analysis.id) {
+    console.error("analysis ID is undefined");
+    return;
+  }
   try {
+    const analysisRef = doc(db, "analyses", analysis.id);
     await setDoc(analysisRef, analysis);
   } catch (error) {
     console.error("Error saving analysis:", error);
+    throw error;
+  }
+};
+export const saveCoverLetterToFirestore = async (coverLetter: CoverLetter) => {
+  if (!coverLetter.id) {
+    console.error("Cover letter ID is undefined");
+    return;
+  }
+  try {
+    const coverLetterRef = doc(db, "coverLetters", coverLetter.id);
+    await setDoc(coverLetterRef, coverLetter);
+  } catch (error) {
+    console.error("Error saving cover letter:", error);
+    throw error;
+  }
+};
+
+export const fetchCoverLettersFromFirestore = async (
+  userId: string
+): Promise<CoverLetter[]> => {
+  try {
+    const snapshot = await getDocs(
+      query(collection(db, "coverLetters"), where("userId", "==", userId))
+    );
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as CoverLetter[];
+  } catch (error) {
+    console.error("Error fetching cover letters", error);
     throw error;
   }
 };
