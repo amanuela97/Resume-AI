@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/app/store";
-import { FileChartColumn, Files, Settings, User, LogOut } from "lucide-react";
+import { FileChartColumn, Files, FileArchive, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,13 +49,12 @@ export default function Navbar() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-card">
-                <DropdownMenuItem className="cursor-pointer my-2 hover:bg-background">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer my-2 hover:bg-background">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Account</span>
+                <DropdownMenuItem
+                  className="cursor-pointer my-2 hover:bg-background"
+                  onClick={() => router.push("/cover-letter")}
+                >
+                  <FileArchive className="mr-2 h-4 w-4" />
+                  <span>cover letters</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer my-2 hover:bg-background"

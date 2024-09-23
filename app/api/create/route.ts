@@ -4,10 +4,16 @@ import { OpenAI } from "@langchain/openai";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { LLMResult } from "@langchain/core/outputs";
 import officeParser from "officeparser";
-import { z } from "zod";
-import { FILE_TYPES } from "@/app/utils/constants";
+import {
+  analysisSchema,
+  analysisTemplate,
+  coverLetterSchema,
+  coverLetterTemplate,
+  FILE_TYPES,
+} from "@/app/utils/constants";
 import fs from "fs";
 import path from "path";
+import { ContentType } from "@/app/utils/types";
 
 const tempDir = path.join("/tmp", "officeParserTemp", "tempfiles");
 
@@ -26,6 +32,7 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const file = formData.get("file") as File; // Renamed to file for clarity
   const jobDescription = formData.get("jobDescription") as string;
+  const contentType = formData.get("contentType") as ContentType;
 
   if (!file || !jobDescription) {
     return NextResponse.json(
@@ -55,31 +62,16 @@ export async function POST(request: Request) {
 
     // Step 2: Define a prompt using Langchain PromptTemplate
     const template = new PromptTemplate({
-      template: `
-      You are a job analyst. You will be given a candidate's resume (text) and a job description.
-      Your job is to analyze how well the candidate fits the job.
-      
-      Resume: {resume}
-      Job Description: {jobDescription}
-
-      Provide a response in the following JSON format:
-      {{
-        "match_score": number (out of 100),
-        "strengths": ["list of strengths"],
-        "weaknesses": ["list of weaknesses"],
-        "recommendation": string
-      }}
-    `,
+      template:
+        contentType === ContentType.analysis
+          ? analysisTemplate
+          : coverLetterTemplate,
       inputVariables: ["resume", "jobDescription"],
     });
 
     // Step 3: Define the Zod schema for output validation
-    const schema = z.object({
-      match_score: z.number().min(0).max(100),
-      strengths: z.array(z.string()),
-      weaknesses: z.array(z.string()),
-      recommendation: z.string(),
-    });
+    const schema =
+      contentType === ContentType.analysis ? analysisSchema : coverLetterSchema;
 
     // Step 4: Create the output parser using fromZodSchema
     const parser = StructuredOutputParser.fromZodSchema(schema);
@@ -90,7 +82,7 @@ export async function POST(request: Request) {
     // Step 6: Send the prompt to OpenAI using Langchain's OpenAI wrapper
     const llm = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-      model: "gpt-3.5-turbo-16k-0613",
+      model: "gpt-3.5-turbo",
       temperature: 0,
       maxTokens: 500,
     });
@@ -103,7 +95,7 @@ export async function POST(request: Request) {
 
     // Return the JSON result
     return NextResponse.json({
-      analysis: parsedResponse,
+      [contentType]: parsedResponse,
     });
   } catch (error) {
     console.error("Error in analyze API:", error);
