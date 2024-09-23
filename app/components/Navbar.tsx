@@ -49,7 +49,7 @@ export default function Navbar() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-card">
-                <DropdownMenuItem className="cursor-pointer my-2 hover:bg-background">
+                <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer my-2 hover:bg-background">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>
