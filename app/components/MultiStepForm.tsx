@@ -263,7 +263,7 @@ export default function MultiStepForm() {
                   />
                 </div>
                 <Button
-                  variant="destructive"
+                  className="destructive"
                   size="sm"
                   onClick={() => removeItem("education", index)}
                 >
@@ -360,7 +360,7 @@ export default function MultiStepForm() {
                   />
                 </div>
                 <Button
-                  variant="destructive"
+                  className="destructive"
                   size="sm"
                   onClick={() => removeItem("workExperience", index)}
                 >
@@ -421,7 +421,7 @@ export default function MultiStepForm() {
                   </RadioGroup>
                 </div>
                 <Button
-                  variant="destructive"
+                  className="destructive"
                   size="sm"
                   onClick={() => removeItem("skills", index)}
                 >
@@ -480,7 +480,7 @@ export default function MultiStepForm() {
                   />
                 </div>
                 <Button
-                  variant="destructive"
+                  className="bg-red-500"
                   size="sm"
                   onClick={() => removeItem("certifications", index)}
                 >
@@ -736,7 +736,7 @@ export default function MultiStepForm() {
                   />
                 </div>
                 <Button
-                  variant="destructive"
+                  className="destructive"
                   size="sm"
                   onClick={() => removeItem("references", index)}
                 >
@@ -764,10 +764,9 @@ export default function MultiStepForm() {
           {steps.map((step, index) => (
             <Button
               key={index}
-              variant={index === currentStep ? "secondary" : "outline"}
               className={`mb-2 ${
                 isStepComplete(step) ? "bg-green-500 hover:bg-green-600" : ""
-              }`}
+              } ${index === currentStep ? "text-white bg-green-900" : ""}`}
               onClick={() => isStepComplete(step) && setCurrentStep(index)}
               disabled={!isStepComplete(step)}
             >
