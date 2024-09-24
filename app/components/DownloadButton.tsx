@@ -10,7 +10,7 @@ import {
 } from "./ui/dropdown-menu"; // Adjust the import path as necessary
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
-import { docDefinition, formatJsonToText } from "@/app/utils/helper";
+import { docDefinition, formatToText } from "@/app/utils/helper";
 import { ContentType } from "../utils/types";
 import { useAppStore } from "../store";
 
@@ -26,18 +26,18 @@ const DownloadButton = ({ contentType }: DownloadButtonProp) => {
 
   const downloadFile = async (format: "pdf" | "txt") => {
     const content =
-      contentType === ContentType.analysis ? analysis : coverLetter;
+      contentType === ContentType.analysis ? analysis : coverLetter?.content;
     if (!content) return;
     setIsDownloading(true);
     const fileName = `${contentType}_${Date.now()}.${format}`;
 
     try {
       if (format === "pdf") {
-        let pdfDefinition = docDefinition(content);
+        const pdfDefinition = docDefinition(content);
         pdfMake.createPdf(pdfDefinition).download(fileName);
       } else if (format === "txt") {
         // Generate formatted text content
-        const formattedText = formatJsonToText(content);
+        const formattedText = formatToText(content);
 
         // Create a Blob object with the text content
         const blob = new Blob([formattedText], {

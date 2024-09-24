@@ -1,5 +1,6 @@
-import { Analysis, AnalysisResponseType, CoverLetter } from "./types";
+import { Analysis, ContentType, CoverLetterResponseType } from "./types";
 import { TDocumentDefinitions } from "pdfmake/interfaces";
+import htmlToPdfmake from "html-to-pdfmake";
 
 export const convertMessageContentToString = (result: any): string => {
   let contentString: string;
@@ -20,47 +21,9 @@ export const convertMessageContentToString = (result: any): string => {
 };
 
 export const docDefinition = (
-  data: CoverLetter | Analysis
+  data: Analysis | string
 ): TDocumentDefinitions => {
-  if ("introduction" in data) {
-    return {
-      content: [
-        { text: "Cover Letter", style: "header" },
-
-        { text: "Introduction", style: "subheader" },
-        { text: data.introduction, margin: [0, 0, 0, 10] },
-        { text: "Relevant Experience", style: "subheader" },
-        {
-          text: data.body.relevant_experience as string,
-          margin: [0, 0, 0, 10],
-        },
-
-        { text: "Skills Match", style: "subheader" },
-        { text: data.body.skills_match as string, margin: [0, 0, 0, 10] },
-        { text: "Cultural Fit", style: "subheader" },
-        { text: data.body.cultural_fit as string, margin: [0, 0, 0, 10] },
-        { text: "Motivation", style: "subheader" },
-        { text: data.body.motivation as string, margin: [0, 0, 0, 10] },
-
-        { text: "Conclusion", style: "subheader" },
-        { text: data.conclusion as string, margin: [0, 0, 0, 10] },
-      ],
-
-      styles: {
-        header: {
-          fontSize: 18,
-          bold: true,
-          alignment: "center",
-          margin: [0, 0, 0, 20],
-        },
-        subheader: {
-          fontSize: 14,
-          bold: true,
-          margin: [0, 10, 0, 5],
-        },
-      },
-    };
-  } else {
+  if (typeof data !== "string") {
     return {
       content: [
         { text: "Candidate Resume Evaluation", style: "header" },
@@ -101,40 +64,55 @@ export const docDefinition = (
         },
       },
     };
+  } else {
+    const parsedContent = htmlToPdfmake(data);
+    return {
+      content: parsedContent,
+    };
   }
 };
 
-export const formatJsonToText = (jsonData: CoverLetter | Analysis) => {
-  if ("match_score" in jsonData) {
-    let textContent = `Candidate Evaluation\n\n`;
-
-    textContent += `Match Score: ${jsonData.match_score}\n\n`;
-
-    textContent += `Strengths:\n`;
-    jsonData.strengths.forEach((strength, index) => {
-      textContent += `  ${index + 1}. ${strength}\n`;
-    });
-
-    textContent += `\nWeaknesses:\n`;
-    jsonData.weaknesses.forEach((weakness, index) => {
-      textContent += `  ${index + 1}. ${weakness}\n`;
-    });
-
-    textContent += `\nRecommendation:\n`;
-    textContent += `  ${jsonData.recommendation}\n`;
-
-    return textContent;
-  } else {
-    let textContent = `${jsonData.introduction}\n\n`;
-
-    textContent += `Relevant Experience: ${jsonData.body.relevant_experience}\n\n`;
-    textContent += `Skills Match: ${jsonData.body.skills_match}\n\n`;
-    textContent += `Cultural Fit: ${jsonData.body.cultural_fit}\n\n`;
-    textContent += `Motivation: ${jsonData.body.motivation}\n\n`;
-
-    textContent += `\conclusion:\n`;
-    textContent += `  ${jsonData.conclusion}\n`;
-
-    return textContent;
+export const formatToText = (jsonData: Analysis | string) => {
+  if (typeof jsonData === "string") {
+    const plainText = jsonData.replace(/<[^>]*>/g, ""); // Remove HTML tags
+    return plainText;
   }
+  let textContent = `Candidate Evaluation\n\n`;
+
+  textContent += `Match Score: ${jsonData.match_score}\n\n`;
+
+  textContent += `Strengths:\n`;
+  jsonData.strengths.forEach((strength, index) => {
+    textContent += `  ${index + 1}. ${strength}\n`;
+  });
+
+  textContent += `\nWeaknesses:\n`;
+  jsonData.weaknesses.forEach((weakness, index) => {
+    textContent += `  ${index + 1}. ${weakness}\n`;
+  });
+
+  textContent += `\nRecommendation:\n`;
+  textContent += `  ${jsonData.recommendation}\n`;
+
+  return textContent;
+};
+
+// Function to format the cover letter body
+export const formatCoverLetterBody = (
+  content: CoverLetterResponseType[ContentType.coverLetter]
+): string => {
+  return `
+      <h1>Introduction</h1>
+      <p>${content.introduction}</p>
+      <h2>Relevant Experience</h2>
+      <p>${content.body.relevant_experience}</p>
+      <h2>Skills Match</h2>
+      <p>${content.body.skills_match}</p>
+      <h2>Cultural Fit</h2>
+      <p>${content.body.cultural_fit}</p>
+      <h2>Motivation</h2>
+      <p>${content.body.motivation}</p>
+      <h2>Conclusion</h2>
+      <p>${content.conclusion}</p>
+    `;
 };

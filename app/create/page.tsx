@@ -14,16 +14,23 @@ import {
   CoverLetterResponseType,
 } from "../utils/types";
 import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { formatCoverLetterBody } from "../utils/helper";
 
 export default function Create() {
   const [isVisible, setIsVisible] = useState<null | ContentType>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [isLoadingCoverLetter, setIsLoadingCoverLetter] = useState(false);
-  const { file, jobDescription, setCoverLetter, setAnalysis } = useAppStore();
+  const { user, file, jobDescription, setCoverLetter, setAnalysis } =
+    useAppStore();
 
   const handleCreate = async (contentType: ContentType) => {
     if (!file || !jobDescription) {
       toast.error("Please upload a resume and provide a job description.");
+      return;
+    } else if (!user?.uid) {
+      console.error("no userID found");
+      toast.info("Unable to create coverLetter.");
       return;
     }
 
@@ -59,7 +66,12 @@ export default function Create() {
         setAnalysis(analysis);
       } else if (contentType === ContentType.coverLetter) {
         const { coverLetter }: CoverLetterResponseType = await response.json();
-        setCoverLetter(coverLetter);
+        setCoverLetter({
+          title: coverLetter.introduction,
+          userId: user.uid,
+          id: uuidv4(),
+          content: formatCoverLetterBody(coverLetter), //
+        });
       }
 
       setIsVisible(contentType);

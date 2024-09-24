@@ -1,2 +1,2 @@
-- create a /cover-letter where you fetch the coverLetter from firestore and display all the cover letter with a card like the /analyses page.
-- Then create also a /cover-letter/:id route similar to the /analyses/:id where you display more details about the selected cover-letter using the alread made CoverLetter Component
+- save the state of the ReactQuill editor in to the global store defined in store.ts file when the user makes changes.
+- when the user clicks the save cover letter button, save it to firestore under "coverLetters" collections including the userId, title, and id of the coverLetter

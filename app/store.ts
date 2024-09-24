@@ -1,7 +1,6 @@
 import { create } from "zustand";
-import { Analyses, Analysis } from "./utils/types";
+import { Analyses, Analysis, CoverLetter } from "./utils/types";
 import { User } from "firebase/auth";
-import { CoverLetter } from "@/app/utils/types";
 
 interface AppState {
   file: File | null;
@@ -33,6 +32,7 @@ export const useAppStore = create<AppState>((set) => ({
   analyses: [], // Initialize analyses as an empty array
   coverLetter: null,
   coverLetters: [],
+  coverLetterContent: "", // Initialize cover letter content
   isLoading: false,
   isExtracting: false, // Initialize isExtracting as false
   user: null, // Initialize user as null
