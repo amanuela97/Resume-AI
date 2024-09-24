@@ -95,10 +95,6 @@ export const saveAnalysisToFirestore = async (analysis: Analysis) => {
   }
 };
 export const saveCoverLetterToFirestore = async (coverLetter: CoverLetter) => {
-  if (!coverLetter.id) {
-    console.error("Cover letter ID is undefined");
-    return;
-  }
   try {
     const coverLetterRef = doc(db, "coverLetters", coverLetter.id);
     await setDoc(coverLetterRef, coverLetter);

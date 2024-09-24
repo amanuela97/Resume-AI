@@ -33,8 +33,9 @@ export enum ContentType {
   coverLetter = "coverLetter",
 }
 
-export type CoverLetter = CoverLetterResponseType[ContentType.coverLetter] & {
-  id?: string;
-  title?: string;
-  userId?: string;
+export type CoverLetter = {
+  id: string;
+  title: string;
+  userId: string;
+  content: string;
 };

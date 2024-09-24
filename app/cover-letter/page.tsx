@@ -13,6 +13,7 @@ import {
 import Loader from "../components/Loader";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { useRouter } from "next/navigation";
+import { formatToText } from "../utils/helper";
 
 const CoverLetterPage = () => {
   const [loading, setLoading] = useState(true);
@@ -22,10 +23,8 @@ const CoverLetterPage = () => {
   useEffect(() => {
     const fetchCoverLetters = async () => {
       if (user?.uid) {
-        const fetchedCoverLetters = await fetchCoverLettersFromFirestore(
-          user.uid
-        );
-        setCoverLetters(fetchedCoverLetters);
+        const data = await fetchCoverLettersFromFirestore(user.uid);
+        setCoverLetters(data);
         setLoading(false);
       }
     };
@@ -45,7 +44,7 @@ const CoverLetterPage = () => {
           {coverLetters.map((coverLetter: CoverLetter) => (
             <Card
               key={coverLetter.id}
-              className="bg-card shadow-lg"
+              className="bg-card shadow-lg cursor-pointer"
               onClick={() => router.push(`/cover-letter/${coverLetter.id}`)}
             >
               <CardHeader className="bg-primary-light mb-2">
@@ -54,7 +53,9 @@ const CoverLetterPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p>{coverLetter.introduction}</p>
+                <p className="truncate">
+                  {formatToText(coverLetter.content.split(/\r?\n/)[0])}
+                </p>
               </CardContent>
             </Card>
           ))}
