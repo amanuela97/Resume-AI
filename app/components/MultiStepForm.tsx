@@ -33,6 +33,7 @@ export default function MultiStepForm() {
   useEffect(() => {
     const storedData = localStorage.getItem("resumeInfo");
     if (storedData) {
+      console.log(storedData);
       setShowButtons(JSON.parse(storedData));
     }
   }, []);
@@ -753,10 +754,10 @@ export default function MultiStepForm() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-background rounded-lg shadow-lg">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Multi-Step Form</h1>
         {showButtons && (
-          <div className="space-x-2">
+          <div className="space-x-2 space-y-2 md:space-y-0">
             <Button onClick={autofillForm} className="bg-blue-500">
               Autofill Form
             </Button>
