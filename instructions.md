@@ -1,6 +1,2 @@
-- create an api route named "extract" which takes formData value of "url"
-- the api checks if the url is a valid website page and returns an error if it is invalid
-- if the url is valid it uses puppeteer or cheerio to extract the texts from that page. It should extract up to 2800 chracters of text at maximum.
-- then the api return the text in the format of { text: string }
-- then in the LinkTab component when the extract button is clicked. Use the url to make a call to /api/extract and then store it to analysis state in the global store.
-- finally use the isExtracting and extractionStatus to update the indicator based on if the api request request was successful or not.
+- save the state of the ReactQuill editor in to the global store defined in store.ts file when the user makes changes.
+- when the user clicks the save cover letter button, save it to firestore under "coverLetters" collections including the userId, title, and id of the coverLetter

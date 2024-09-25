@@ -8,25 +8,24 @@ import {
   CardTitle,
   CardContent,
 } from "../components/ui/card";
-import { FaCheckCircle, FaTimesCircle } from "react-icons/fa"; // Import icons
+import { FaCheckCircle, FaTimesCircle, FaTrash } from "react-icons/fa"; // Import icons
 import { Button } from "../components/ui/button"; // Ensure Button component is imported
 import { Modal } from "../components/ui/modal"; // Import the Modal component
-import { saveAnalysisToFirestore } from "../utils/firebase"; // Import the save function
+import { db, saveAnalysisToFirestore } from "../utils/firebase"; // Import the save function
 import DownloadButton from "@/app/components/DownloadButton"; // Import the DownloadButton component
 import { toast } from "react-toastify";
-import { Analysis } from "@/app//utils/types";
 import { v4 as uuidv4 } from "uuid";
+import { ContentType } from "../utils/types";
+import { deleteDoc, doc } from "firebase/firestore";
+import { usePathname } from "next/navigation";
 
-type analysisType = Omit<Analysis, "id" | "name" | "userId"> | null;
-type AnalysisResultsProp = {
-  analysis: analysisType;
-};
-
-export default function AnalysisResults({ analysis }: AnalysisResultsProp) {
-  const { user, analyses, setAnalyses } = useAppStore();
+export default function AnalysisResults() {
+  const pathname = usePathname();
+  const { user, analyses, analysis, setAnalyses, deleteAnalysis } =
+    useAppStore();
   const [isVisible, setIsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [analysisName, setAnalysisName] = useState("");
+  const [analysisTitle, setAnalysisTitle] = useState("");
 
   useEffect(() => {
     if (analysis) {
@@ -35,7 +34,7 @@ export default function AnalysisResults({ analysis }: AnalysisResultsProp) {
   }, [analysis]);
 
   const handleSaveAnalysis = async () => {
-    if (analysisName.trim() === "") {
+    if (analysisTitle.trim() === "") {
       toast.info("Please provide a name for the analysis.");
       return;
     } else if (!user?.uid || !analysis) {
@@ -49,24 +48,32 @@ export default function AnalysisResults({ analysis }: AnalysisResultsProp) {
     }
 
     try {
-      const id = uuidv4();
-      await saveAnalysisToFirestore({
+      const newAnalysis = {
         ...analysis,
-        name: analysisName,
-        userId: user?.uid,
-        id,
-      });
+        title: analysisTitle,
+        userId: user.uid,
+        id: uuidv4(),
+      };
+      await saveAnalysisToFirestore(newAnalysis);
       toast.success("Analysis saved successfully!");
-      setAnalyses([
-        ...analyses,
-        { ...analysis, name: analysisName, userId: user?.uid, id },
-      ]);
+      setAnalyses([...analyses, newAnalysis]);
     } catch (error) {
       console.error("Error saving analysis:", error);
       toast.error("Failed to save analysis.");
     } finally {
       setIsModalOpen(false);
-      setAnalysisName(""); // Clear the input
+      setAnalysisTitle(""); // Clear the input
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "analyses", id));
+      deleteAnalysis(id);
+      toast.success(`Deleted analysis successfully!`);
+    } catch (error) {
+      console.error("Error deleting analysis:", error);
+      toast.error("Error deleting analysis");
     }
   };
 
@@ -100,11 +107,25 @@ export default function AnalysisResults({ analysis }: AnalysisResultsProp) {
           Analysis Results
         </CardTitle>
         <div className="flex items-center">
-          <DownloadButton analysis={analysis} />{" "}
+          <DownloadButton contentType={ContentType.analysis} />{" "}
           {/* Add the DownloadButton here */}
           <Button onClick={() => setIsModalOpen(true)} className="bg-accent">
             Save Analysis
           </Button>
+          {pathname !== "/create" && (
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (analysis.id) {
+                  handleDelete(analysis.id);
+                }
+              }}
+            >
+              <FaTrash className="w-4 h-4 text-neutral" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="text-card-foreground">
@@ -165,8 +186,8 @@ export default function AnalysisResults({ analysis }: AnalysisResultsProp) {
           <h2 className="text-lg font-bold mb-2">Save Analysis</h2>
           <input
             type="text"
-            value={analysisName}
-            onChange={(e) => setAnalysisName(e.target.value)}
+            value={analysisTitle}
+            onChange={(e) => setAnalysisTitle(e.target.value)}
             placeholder="Enter a name for the analysis"
             className="border border-gray-300 rounded p-2 w-full"
           />

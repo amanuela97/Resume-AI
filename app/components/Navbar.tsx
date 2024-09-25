@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/app/store";
-import { FileChartColumn, Files, Settings, User, LogOut } from "lucide-react";
+import { FileChartColumn, Files, FileArchive, LogOut, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,8 @@ import {
 import { useState } from "react";
 import Image from "next/image";
 import ThemeSwitcher from "./ThemeSwitcher";
+import Settings from "../settings/page";
+
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -60,21 +62,34 @@ export default function Navbar() {
                 <DropdownMenuItem className="cursor-pointer my-2 hover:bg-background">
                   <User className="mr-2 h-4 w-4" />
                   <span>Account</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer my-2 hover:bg-background"
-                  onClick={() => router.push("/analyses")}
-                >
-                  <Files className="mr-2 h-4 w-4" />
-                  <span>Analyses</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer my-2 hover:bg-background text-destructive"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer my-2 hover:bg-background"
+                    onClick={() => router.push("/cover-letter")}
+                  >
+                    <FileArchive className="mr-2 h-4 w-4" />
+                    <span>cover letters</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer my-2 hover:bg-background"
+                    onClick={() => router.push("/cover-letter")}
+                  >
+                    <FileArchive className="mr-2 h-4 w-4" />
+                    <span>cover letters</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer my-2 hover:bg-background"
+                    onClick={() => router.push("/analyses")}
+                  >
+                    <Files className="mr-2 h-4 w-4" />
+                    <span>Analyses</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer my-2 hover:bg-background text-destructive"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

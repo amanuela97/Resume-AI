@@ -10,32 +10,34 @@ import {
 } from "./ui/dropdown-menu"; // Adjust the import path as necessary
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
-import { docDefinition, formatJsonToText } from "@/app/utils/helper";
-import { Analysis } from "../utils/types";
+import { docDefinition, formatToText } from "@/app/utils/helper";
+import { ContentType } from "../utils/types";
+import { useAppStore } from "../store";
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-type analysisType = Omit<Analysis, "id" | "name" | "userId"> | null;
 type DownloadButtonProp = {
-  analysis: analysisType;
+  contentType: ContentType;
 };
 
-const DownloadButton = ({ analysis }: DownloadButtonProp) => {
+const DownloadButton = ({ contentType }: DownloadButtonProp) => {
+  const { analysis, coverLetter } = useAppStore();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const downloadFile = async (format: "pdf" | "txt") => {
-    if (!analysis) return;
-
+    const content =
+      contentType === ContentType.analysis ? analysis : coverLetter?.content;
+    if (!content) return;
     setIsDownloading(true);
-    const fileName = `Analysis_${Date.now()}.${format}`;
+    const fileName = `${contentType}_${Date.now()}.${format}`;
 
     try {
       if (format === "pdf") {
-        const pdfDefinition = docDefinition(analysis);
+        const pdfDefinition = docDefinition(content);
         pdfMake.createPdf(pdfDefinition).download(fileName);
       } else if (format === "txt") {
         // Generate formatted text content
-        const formattedText = formatJsonToText(analysis);
+        const formattedText = formatToText(content);
 
         // Create a Blob object with the text content
         const blob = new Blob([formattedText], {
