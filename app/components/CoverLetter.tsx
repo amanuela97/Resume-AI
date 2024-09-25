@@ -7,7 +7,7 @@ import { Button } from "./ui/button";
 import { toast } from "react-toastify";
 import DownloadButton from "./DownloadButton";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { ContentType } from "../utils/types";
+import { ContentType, isTimestamp } from "../utils/types";
 import { deleteDoc, doc } from "firebase/firestore";
 import { FaTrash } from "react-icons/fa";
 import { usePathname } from "next/navigation";
@@ -115,6 +115,22 @@ const CoverLetterComponent: React.FC = () => {
             }}
             theme="snow"
           />
+        )}
+        {coverLetter && (
+          <div className="mt-4 text-sm text-gray-500">
+            <p>
+              Created At:{" "}
+              {isTimestamp(coverLetter.createdAt)
+                ? coverLetter.createdAt.toDate().toLocaleString()
+                : "N/A"}
+            </p>
+            <p>
+              Updated At:{" "}
+              {isTimestamp(coverLetter.updatedAt)
+                ? coverLetter.updatedAt.toDate().toLocaleString()
+                : "N/A"}
+            </p>
+          </div>
         )}
       </CardContent>
 

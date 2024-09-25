@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/app/utils/firebase";
+import { fetchCoverLetter } from "@/app/utils/firebase";
 import CoverLetterComponent from "@/app/components/CoverLetter";
 import Loader from "@/app/components/Loader";
 import { useAppStore } from "@/app/store";
-import { doc, getDoc } from "firebase/firestore";
-import { CoverLetter } from "@/app/utils/types";
 import { Button } from "@/app/components/ui/button";
 import ProtectedRoute from "@/app/components/ProtectedRoute";
 import { useParams, useRouter } from "next/navigation";
@@ -18,21 +16,18 @@ const CoverLetterDetailPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCoverLetter = async () => {
+    const fetchCoverLetterData = async () => {
       setLoading(true);
       if (id && typeof id === "string") {
-        const docRef = doc(db, "coverLetters", id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setCoverLetter(docSnap.data() as CoverLetter);
-        } else {
-          console.error("No such document!");
+        const coverLetterData = await fetchCoverLetter(id);
+        if (coverLetterData) {
+          setCoverLetter(coverLetterData);
         }
       }
       setLoading(false);
     };
 
-    fetchCoverLetter();
+    fetchCoverLetterData();
   }, [id]);
 
   if (loading) {

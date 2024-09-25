@@ -1,3 +1,5 @@
+import { FieldValue, Timestamp } from "firebase/firestore";
+
 export interface AnalysisResponseType {
   analysis: {
     match_score: number;
@@ -19,11 +21,14 @@ export interface CoverLetterResponseType {
     conclusion: string;
   };
 }
+export type FireBaseDate = Timestamp | FieldValue;
 
 export type Analysis = AnalysisResponseType[ContentType.analysis] & {
   id?: string;
   title?: string;
   userId?: string;
+  updatedAt: FireBaseDate;
+  createdAt: FireBaseDate;
 };
 
 export type Analyses = Analysis[];
@@ -38,4 +43,10 @@ export type CoverLetter = {
   title: string;
   userId: string;
   content: string;
+  updatedAt: FireBaseDate;
+  createdAt: FireBaseDate;
 };
+
+export function isTimestamp(value: any): value is Timestamp {
+  return value instanceof Timestamp;
+}

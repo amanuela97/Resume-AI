@@ -15,7 +15,7 @@ import { db, saveAnalysisToFirestore } from "../utils/firebase"; // Import the s
 import DownloadButton from "@/app/components/DownloadButton"; // Import the DownloadButton component
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
-import { ContentType } from "../utils/types";
+import { ContentType, isTimestamp } from "../utils/types";
 import { deleteDoc, doc } from "firebase/firestore";
 import { usePathname } from "next/navigation";
 
@@ -177,6 +177,15 @@ export default function AnalysisResults() {
         <div>
           <h3 className="text-lg font-medium">Recommendation</h3>
           <p className="mt-2">{recommendation}</p>
+        </div>
+
+        <div className="mt-4 text-sm text-gray-500">
+          <p>
+            Created At:{" "}
+            {isTimestamp(analysis.createdAt)
+              ? analysis.createdAt.toDate().toLocaleString()
+              : "N/A"}
+          </p>
         </div>
       </CardContent>
 

@@ -14,9 +14,13 @@ import {
   getDocs,
   query,
   where,
+  serverTimestamp,
+  getDoc,
+  QueryDocumentSnapshot,
+  DocumentData,
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { Analysis, CoverLetter } from "./types";
+import { Analyses, Analysis, CoverLetter, FireBaseDate } from "./types";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -88,16 +92,62 @@ export const saveAnalysisToFirestore = async (analysis: Analysis) => {
   }
   try {
     const analysisRef = doc(db, "analyses", analysis.id);
-    await setDoc(analysisRef, analysis);
+    await setDoc(analysisRef, {
+      ...analysis,
+      updatedAt: serverTimestamp(),
+      createdAt: analysis.createdAt || serverTimestamp(),
+    });
   } catch (error) {
     console.error("Error saving analysis:", error);
     throw error;
   }
 };
+
+export const fetchAnalyses = async (user: User): Promise<Analyses> => {
+  try {
+    const q = query(
+      collection(db, "analyses"),
+      where("userId", "==", user.uid)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      ...formatFireStoreDate(doc),
+    })) as Analyses;
+  } catch (error) {
+    console.error("Error fetching analyses", error);
+    throw error;
+  }
+};
+
+export const fetchAnalysis = async (id: string): Promise<Analysis | null> => {
+  try {
+    const docRef = doc(db, "analyses", id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return {
+        ...docSnap.data(),
+        ...formatFireStoreDate(docSnap),
+      } as Analysis;
+    } else {
+      console.error(`Analysis with id ${id} was not found!`);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching analysis", error);
+    throw error;
+  }
+};
+
 export const saveCoverLetterToFirestore = async (coverLetter: CoverLetter) => {
   try {
     const coverLetterRef = doc(db, "coverLetters", coverLetter.id);
-    await setDoc(coverLetterRef, coverLetter);
+    await setDoc(coverLetterRef, {
+      ...coverLetter,
+      updatedAt: serverTimestamp(),
+      createdAt: coverLetter.createdAt || serverTimestamp(),
+    });
   } catch (error) {
     console.error("Error saving cover letter:", error);
     throw error;
@@ -114,9 +164,40 @@ export const fetchCoverLettersFromFirestore = async (
     return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
+      ...formatFireStoreDate(doc),
     })) as CoverLetter[];
   } catch (error) {
     console.error("Error fetching cover letters", error);
     throw error;
   }
+};
+
+export const fetchCoverLetter = async (
+  id: string
+): Promise<CoverLetter | null> => {
+  try {
+    const docRef = doc(db, "coverLetters", id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return {
+        ...docSnap.data(),
+        ...formatFireStoreDate(docSnap),
+      } as CoverLetter;
+    } else {
+      console.error(`coverLetter with id ${id} was not found!`);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching coverLetter", error);
+    throw error;
+  }
+};
+
+export const formatFireStoreDate = (
+  doc: QueryDocumentSnapshot<DocumentData, DocumentData>
+): { createdAt: FireBaseDate; updatedAt: FireBaseDate } => {
+  return {
+    createdAt: doc.data().createdAt,
+    updatedAt: doc.data().updatedAt,
+  };
 };
