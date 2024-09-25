@@ -2,7 +2,9 @@
 
 import React from 'react'
 import { useState } from 'react';
-import { User, CreditCard, Moon } from 'lucide-react';
+import AccountSettings from "../components/AccountSettings";
+import Payment from "../components/Payment";
+import { User, CreditCard } from 'lucide-react';
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Separator } from "../components/ui/separator";
@@ -14,8 +16,8 @@ export default function Settings() {
     const settingsOptions = [
         { id: 'account', label: 'Account', icon: User },
         { id: 'payment', label: 'Payment', icon: CreditCard },
-        { id: 'darkMode', label: 'Dark Mode', icon: Moon },
     ]
+
 
     return (
         <div className="container mx-auto p-4">
@@ -46,10 +48,8 @@ export default function Settings() {
                                 {settingsOptions.find(option => option.id === activeSetting)?.label} Settings
                             </h2>
                             <Separator className="my-4" />
-                            {/* Content for each setting would go here */}
-                            <p className="text-muted-foreground">
-                                Configure your {activeSetting} settings here.
-                            </p>
+                            {activeSetting === 'account' && <AccountSettings />}
+                            {activeSetting === 'payment' && <Payment />}
                         </div>
                     </div>
                 </CardContent>

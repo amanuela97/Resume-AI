@@ -50,7 +50,7 @@ export default function LinkTab() {
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         placeholder="Enter the job description URL"
-        className="mb-4 border-secondary focus:ring-accent bg-white p-2"
+        className="mb-4 border-secondary focus:ring-accent p-2"
       />
       <Button
         onClick={handleExtract}

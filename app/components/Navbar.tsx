@@ -12,6 +12,7 @@ import {
 } from "@/app/components/ui/dropdown-menu";
 import { useState } from "react";
 import Image from "next/image";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,17 +38,20 @@ export default function Navbar() {
         {user && (
           <div className="relative">
             <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-              <DropdownMenuTrigger asChild>
-                <button className="focus:outline-none">
-                  <Image
-                    src={user.photoURL || "/placeholder.svg"}
-                    alt="User avatar"
-                    width={40}
-                    height={40}
-                    className="rounded-full object-cover"
-                  />
-                </button>
-              </DropdownMenuTrigger>
+              <div className="flex items-center gap-14">
+                <DropdownMenuTrigger asChild>
+                  <button className="focus:outline-none">
+                    <Image
+                      src={user.photoURL || "/placeholder.svg"}
+                      alt="User avatar"
+                      width={40}
+                      height={40}
+                      className="rounded-full object-cover"
+                    />
+                  </button>
+                </DropdownMenuTrigger>
+                <ThemeSwitcher />
+              </div>
               <DropdownMenuContent align="end" className="w-56 bg-card">
                 <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer my-2 hover:bg-background">
                   <Settings className="mr-2 h-4 w-4" />

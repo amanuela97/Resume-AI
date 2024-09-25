@@ -34,7 +34,7 @@ export default function Home() {
         {user ? (
           <button
             onClick={() => router.push("/analyze")}
-            className="w-fit px-6 py-2bg-primary-light text-gray-800 hover:bg-card/80 focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 transition-colors"
+            className="w-fit px-6 py-2 hover:bg-card/80 focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 transition-colors"
           >
             Start Using Resume AI
           </button>
