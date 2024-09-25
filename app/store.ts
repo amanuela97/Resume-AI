@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Analyses, Analysis, CoverLetter } from "./utils/types";
+import { Analyses, Analysis, CoverLetter, ResumeInfo } from "./utils/types";
 import { User } from "firebase/auth";
 
 interface AppState {
@@ -9,6 +9,7 @@ interface AppState {
   analyses: Analyses; // Add analyses state
   coverLetter: CoverLetter | null;
   coverLetters: CoverLetter[];
+  resumeInfo: ResumeInfo; // New state for resume information
   isLoading: boolean;
   isExtracting: boolean; // Add isExtracting state
   user: User | null;
@@ -16,6 +17,7 @@ interface AppState {
   setJobDescription: (description: string) => void;
   setCoverLetter: (coverLetter: CoverLetter) => void;
   setCoverLetters: (coverLetters: CoverLetter[]) => void;
+  setResumeInfo: (resumeInfo: ResumeInfo) => void; // New setter for resume information
   setAnalysis: (analysis: Analysis | null) => void;
   setAnalyses: (analyses: Analysis[]) => void; // Add setAnalyses action
   deleteAnalysis: (id: string) => void; // Add deleteAnalysis action
@@ -32,7 +34,63 @@ export const useAppStore = create<AppState>((set) => ({
   analyses: [], // Initialize analyses as an empty array
   coverLetter: null,
   coverLetters: [],
-  coverLetterContent: "", // Initialize cover letter content
+  resumeInfo: {
+    fullName: "",
+    email: "",
+    phone: "",
+    address: "",
+    linkedin: "",
+    careerObjective: "",
+    education: [
+      {
+        school: "",
+        degree: "",
+        fieldOfStudy: "",
+        graduationDate: "",
+        honors: "",
+      },
+    ],
+    workExperience: [
+      {
+        jobTitle: "",
+        companyName: "",
+        employmentDates: "",
+        responsibilities: "",
+        achievements: "",
+        location: "",
+      },
+    ],
+    skills: [{ skillName: "", skillLevel: "" }],
+    certifications: [
+      { certificationName: "", issuingOrganization: "", dateEarned: "" },
+    ],
+    projects: [
+      {
+        projectName: "",
+        projectDescription: "",
+        keyTechnologies: "",
+        projectDuration: "",
+      },
+    ],
+    volunteerExperience: [
+      {
+        volunteerOrg: "",
+        volunteerRole: "",
+        volunteerDuration: "",
+        volunteerResponsibilities: "",
+      },
+    ],
+    awards: [{ awardName: "", awardOrg: "", dateReceived: "" }],
+    references: [
+      {
+        refereeName: "",
+        refereeJobTitle: "",
+        refereeCompany: "",
+        refereeContact: "",
+      },
+    ],
+    interests: "",
+  }, // Initialize resumeInfo
   isLoading: false,
   isExtracting: false, // Initialize isExtracting as false
   user: null, // Initialize user as null
@@ -55,4 +113,5 @@ export const useAppStore = create<AppState>((set) => ({
   setUser: (user: User | null) => set({ user }),
   setCoverLetter: (coverLetter: CoverLetter) => set({ coverLetter }),
   setCoverLetters: (coverLetters: CoverLetter[]) => set({ coverLetters }),
+  setResumeInfo: (resumeInfo: ResumeInfo) => set({ resumeInfo }), // New setter
 }));

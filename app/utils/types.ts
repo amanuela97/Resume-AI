@@ -50,3 +50,62 @@ export type CoverLetter = {
 export function isTimestamp(value: any): value is Timestamp {
   return value instanceof Timestamp;
 }
+
+export type ResumeInfo = {
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  linkedin: string;
+  careerObjective: string;
+  education: {
+    school: string;
+    degree: string;
+    fieldOfStudy: string;
+    graduationDate: string;
+    honors: string;
+  }[];
+  workExperience: {
+    jobTitle: string;
+    companyName: string;
+    employmentDates: string;
+    responsibilities: string;
+    achievements: string;
+    location: string;
+  }[];
+  skills: {
+    skillName: string;
+    skillLevel: string;
+  }[];
+  certifications: {
+    certificationName: string;
+    issuingOrganization: string;
+    dateEarned: string;
+  }[];
+  projects: {
+    projectName: string;
+    projectDescription: string;
+    keyTechnologies: string;
+    projectDuration: string;
+  }[];
+  volunteerExperience: {
+    volunteerOrg: string;
+    volunteerRole: string;
+    volunteerDuration: string;
+    volunteerResponsibilities: string;
+  }[];
+  awards: {
+    awardName: string;
+    awardOrg: string;
+    dateReceived: string;
+  }[];
+  references: {
+    refereeName: string;
+    refereeJobTitle: string;
+    refereeCompany: string;
+    refereeContact: string;
+  }[];
+  interests: string;
+};
+
+export type Section = keyof ResumeInfo;

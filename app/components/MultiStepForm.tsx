@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -8,6 +8,8 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Label } from "@/app/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { PlusCircle, Trash2 } from "lucide-react";
+import { Section } from "@/app/utils/types";
+import { useAppStore } from "../store";
 
 const steps = [
   { name: "Personal Information", required: ["fullName", "email"] },
@@ -25,64 +27,15 @@ const steps = [
 
 export default function MultiStepForm() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
-    fullName: "", // Added default value
-    email: "", // Added default value
-    phone: "", // Added default value
-    address: "", // Added default value
-    linkedin: "", // Added default value
-    careerObjective: "", // Added default value
-    education: [
-      {
-        school: "",
-        degree: "",
-        fieldOfStudy: "",
-        graduationDate: "",
-        honors: "",
-      },
-    ], // Default for education section
-    workExperience: [
-      {
-        jobTitle: "",
-        companyName: "",
-        employmentDates: "",
-        responsibilities: "",
-        achievements: "",
-        location: "",
-      },
-    ], // Default for work experience section
-    skills: [{ skillName: "", skillLevel: "" }], // Default for skills section
-    certifications: [
-      { certificationName: "", issuingOrganization: "", dateEarned: "" },
-    ], // Default for certifications section
-    projects: [
-      {
-        projectName: "",
-        projectDescription: "",
-        keyTechnologies: "",
-        projectDuration: "",
-      },
-    ], // Default for projects section
-    volunteerExperience: [
-      {
-        volunteerOrg: "",
-        volunteerRole: "",
-        volunteerDuration: "",
-        volunteerResponsibilities: "",
-      },
-    ], // Default for volunteer experience section
-    awards: [{ awardName: "", awardOrg: "", dateReceived: "" }], // Default for awards section
-    references: [
-      {
-        refereeName: "",
-        refereeJobTitle: "",
-        refereeCompany: "",
-        refereeContact: "",
-      },
-    ], // Default for references section
-    interests: "", // Added default value
-  });
-  type Section = keyof typeof formData;
+  const { resumeInfo, setResumeInfo } = useAppStore(); // Use global state
+  const [showButtons, setShowButtons] = useState(true);
+
+  useEffect(() => {
+    const storedData = localStorage.getItem("resumeInfo");
+    if (storedData) {
+      setShowButtons(JSON.parse(storedData));
+    }
+  }, []);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>,
@@ -91,49 +44,76 @@ export default function MultiStepForm() {
   ) => {
     const { name, value } = e.target;
     if (section && index !== null) {
-      setFormData((prev) => {
-        if (Array.isArray(prev[section])) {
-          const updatedSection = prev[section].map((item: any, i: number) =>
-            i === index ? { ...item, [name]: value } : item
-          );
-          return { ...prev, [section]: updatedSection };
-        }
-        return prev;
-      });
+      if (Array.isArray(resumeInfo[section])) {
+        const updatedSection = resumeInfo[section].map((item: any, i: number) =>
+          i === index ? { ...item, [name]: value } : item
+        );
+        setResumeInfo({ ...resumeInfo, [section]: updatedSection });
+      } else {
+        setResumeInfo(resumeInfo);
+      }
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setResumeInfo({ ...resumeInfo, [name]: value });
     }
   };
 
   const addItem = (section: Section) => {
-    setFormData((prev) => {
-      if (Array.isArray(prev[section])) {
-        const updatedSection = [...prev[section], {}];
-        return { ...prev, [section]: updatedSection };
-      }
-      return prev;
-    });
+    if (Array.isArray(resumeInfo[section])) {
+      const updatedSection = [...resumeInfo[section], {}];
+      setResumeInfo({ ...resumeInfo, [section]: updatedSection });
+    } else {
+      setResumeInfo(resumeInfo);
+    }
   };
 
   const removeItem = (section: Section, index: number) => {
-    setFormData((prev) => {
-      if (Array.isArray(prev[section])) {
-        return {
-          ...prev,
-          [section]: prev[section].filter((_: any, i: number) => i !== index),
-        };
-      }
-      return prev;
-    });
+    console.log(section, index);
+    if (Array.isArray(resumeInfo[section])) {
+      setResumeInfo({
+        ...resumeInfo,
+        [section]: resumeInfo[section].filter(
+          (_: any, i: number) => i !== index
+        ),
+      });
+    } else {
+      setResumeInfo(resumeInfo);
+    }
   };
 
   const isStepComplete = (step: { name?: string; required: any }) => {
     return step.required.every((field: Section) => {
-      if (Array.isArray(formData[field])) {
-        return formData[field].every((item) => item.trim() !== "");
+      if (Array.isArray(resumeInfo[field])) {
+        return resumeInfo[field].every((item) => item.trim() !== "");
       }
-      return formData[field] && formData[field].trim() !== "";
+      return resumeInfo[field] && resumeInfo[field].trim() !== "";
     });
+  };
+
+  const canProceed = () => {
+    return isStepComplete(steps[currentStep]);
+  };
+
+  const canSkipStep = () => {
+    const requiredSteps = steps.filter((step) => step.required.length > 0);
+    return requiredSteps.every((step) => isStepComplete(step));
+  };
+
+  const handleOnSubmit = () => {
+    localStorage.setItem("resumeInfo", JSON.stringify(resumeInfo));
+    setShowButtons(false);
+  };
+
+  const autofillForm = () => {
+    const storedData = localStorage.getItem("resumeInfo");
+    if (storedData) {
+      setResumeInfo(JSON.parse(storedData));
+      setShowButtons(false);
+    }
+  };
+
+  const clearStoredData = () => {
+    localStorage.removeItem("resumeInfo");
+    setShowButtons(false);
   };
 
   const renderStep = () => {
@@ -147,7 +127,7 @@ export default function MultiStepForm() {
                 id="fullName"
                 name="fullName"
                 onChange={handleInputChange}
-                value={formData.fullName || ""}
+                value={resumeInfo.fullName || ""}
                 required
               />
             </div>
@@ -157,7 +137,7 @@ export default function MultiStepForm() {
                 id="phone"
                 name="phone"
                 onChange={handleInputChange}
-                value={formData.phone || ""}
+                value={resumeInfo.phone || ""}
               />
             </div>
             <div>
@@ -167,7 +147,7 @@ export default function MultiStepForm() {
                 name="email"
                 type="email"
                 onChange={handleInputChange}
-                value={formData.email || ""}
+                value={resumeInfo.email || ""}
                 required
               />
             </div>
@@ -177,7 +157,7 @@ export default function MultiStepForm() {
                 id="address"
                 name="address"
                 onChange={handleInputChange}
-                value={formData.address || ""}
+                value={resumeInfo.address || ""}
               />
             </div>
             <div>
@@ -186,7 +166,7 @@ export default function MultiStepForm() {
                 id="linkedin"
                 name="linkedin"
                 onChange={handleInputChange}
-                value={formData.linkedin || ""}
+                value={resumeInfo.linkedin || ""}
               />
             </div>
           </div>
@@ -199,7 +179,7 @@ export default function MultiStepForm() {
               id="careerObjective"
               name="careerObjective"
               onChange={handleInputChange}
-              value={formData.careerObjective || ""}
+              value={resumeInfo.careerObjective || ""}
               className="h-32"
               required
             />
@@ -208,7 +188,7 @@ export default function MultiStepForm() {
       case 2:
         return (
           <div className="space-y-4">
-            {formData.education.map((edu, index) => (
+            {resumeInfo.education.map((edu, index) => (
               <div key={index} className="p-4 border rounded-md space-y-4">
                 <div>
                   <Label htmlFor={`school-${index}`}>
@@ -263,7 +243,7 @@ export default function MultiStepForm() {
                   />
                 </div>
                 <Button
-                  className="destructive"
+                  className="bg-red-500"
                   size="sm"
                   onClick={() => removeItem("education", index)}
                 >
@@ -272,7 +252,10 @@ export default function MultiStepForm() {
                 </Button>
               </div>
             ))}
-            <Button onClick={() => addItem("education")}>
+            <Button
+              className="bg-green-500"
+              onClick={() => addItem("education")}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Education
             </Button>
@@ -281,7 +264,7 @@ export default function MultiStepForm() {
       case 3:
         return (
           <div className="space-y-4">
-            {formData.workExperience.map((exp, index) => (
+            {resumeInfo.workExperience.map((exp, index) => (
               <div key={index} className="p-4 border rounded-md space-y-4">
                 <div>
                   <Label htmlFor={`jobTitle-${index}`}>Job Title</Label>
@@ -360,7 +343,7 @@ export default function MultiStepForm() {
                   />
                 </div>
                 <Button
-                  className="destructive"
+                  className="bg-red-500"
                   size="sm"
                   onClick={() => removeItem("workExperience", index)}
                 >
@@ -369,7 +352,10 @@ export default function MultiStepForm() {
                 </Button>
               </div>
             ))}
-            <Button onClick={() => addItem("workExperience")}>
+            <Button
+              className="bg-green-500"
+              onClick={() => addItem("workExperience")}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Work Experience
             </Button>
@@ -378,7 +364,7 @@ export default function MultiStepForm() {
       case 4:
         return (
           <div className="space-y-4">
-            {formData.skills.map((skill, index) => (
+            {resumeInfo.skills.map((skill, index) => (
               <div key={index} className="p-4 border rounded-md space-y-4">
                 <div>
                   <Label htmlFor={`skillName-${index}`}>Skill Name</Label>
@@ -421,7 +407,7 @@ export default function MultiStepForm() {
                   </RadioGroup>
                 </div>
                 <Button
-                  className="destructive"
+                  className="bg-red-500"
                   size="sm"
                   onClick={() => removeItem("skills", index)}
                 >
@@ -430,7 +416,7 @@ export default function MultiStepForm() {
                 </Button>
               </div>
             ))}
-            <Button onClick={() => addItem("skills")}>
+            <Button className="bg-green-500" onClick={() => addItem("skills")}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Skill
             </Button>
@@ -439,7 +425,7 @@ export default function MultiStepForm() {
       case 5:
         return (
           <div className="space-y-4">
-            {formData.certifications.map((cert, index) => (
+            {resumeInfo.certifications.map((cert, index) => (
               <div key={index} className="p-4 border rounded-md space-y-4">
                 <div>
                   <Label htmlFor={`certificationName-${index}`}>
@@ -489,7 +475,10 @@ export default function MultiStepForm() {
                 </Button>
               </div>
             ))}
-            <Button onClick={() => addItem("certifications")}>
+            <Button
+              className="bg-green-500"
+              onClick={() => addItem("certifications")}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Certification
             </Button>
@@ -498,7 +487,7 @@ export default function MultiStepForm() {
       case 6:
         return (
           <div className="space-y-4">
-            {formData.projects.map((project, index) => (
+            {resumeInfo.projects.map((project, index) => (
               <div key={index} className="p-4 border rounded-md space-y-4">
                 <div>
                   <Label htmlFor={`projectName-${index}`}>Project Name</Label>
@@ -542,7 +531,7 @@ export default function MultiStepForm() {
                   />
                 </div>
                 <Button
-                  variant="destructive"
+                  className="bg-red-500"
                   size="sm"
                   onClick={() => removeItem("projects", index)}
                 >
@@ -560,7 +549,7 @@ export default function MultiStepForm() {
       case 7:
         return (
           <div className="space-y-4">
-            {formData.volunteerExperience.map((exp, index) => (
+            {resumeInfo.volunteerExperience.map((exp, index) => (
               <div key={index} className="p-4 border rounded-md space-y-4">
                 <div>
                   <Label htmlFor={`volunteerOrg-${index}`}>
@@ -612,7 +601,7 @@ export default function MultiStepForm() {
                   />
                 </div>
                 <Button
-                  variant="destructive"
+                  className="bg-red-500"
                   size="sm"
                   onClick={() => removeItem("volunteerExperience", index)}
                 >
@@ -621,7 +610,10 @@ export default function MultiStepForm() {
                 </Button>
               </div>
             ))}
-            <Button onClick={() => addItem("volunteerExperience")}>
+            <Button
+              className="bg-green-500"
+              onClick={() => addItem("volunteerExperience")}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Volunteer Experience
             </Button>
@@ -630,7 +622,7 @@ export default function MultiStepForm() {
       case 8:
         return (
           <div className="space-y-4">
-            {formData.awards.map((award, index) => (
+            {resumeInfo.awards.map((award, index) => (
               <div key={index} className="p-4 border rounded-md space-y-4">
                 <div>
                   <Label htmlFor={`awardName-${index}`}>Award Name</Label>
@@ -663,7 +655,7 @@ export default function MultiStepForm() {
                   />
                 </div>
                 <Button
-                  variant="destructive"
+                  className="bg-red-500"
                   size="sm"
                   onClick={() => removeItem("awards", index)}
                 >
@@ -672,7 +664,7 @@ export default function MultiStepForm() {
                 </Button>
               </div>
             ))}
-            <Button onClick={() => addItem("awards")}>
+            <Button className="bg-green-500" onClick={() => addItem("awards")}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Award
             </Button>
@@ -686,7 +678,7 @@ export default function MultiStepForm() {
               id="interests"
               name="interests"
               onChange={handleInputChange}
-              value={formData.interests || ""}
+              value={resumeInfo.interests || ""}
               className="h-24"
               placeholder="List your interests or hobbies"
             />
@@ -695,7 +687,7 @@ export default function MultiStepForm() {
       case 10:
         return (
           <div className="space-y-4">
-            {formData.references.map((ref, index) => (
+            {resumeInfo.references.map((ref, index) => (
               <div key={index} className="p-4 border rounded-md space-y-4">
                 <div>
                   <Label htmlFor={`refereeName-${index}`}>Referee Name</Label>
@@ -736,7 +728,7 @@ export default function MultiStepForm() {
                   />
                 </div>
                 <Button
-                  className="destructive"
+                  className="bg-red-500"
                   size="sm"
                   onClick={() => removeItem("references", index)}
                 >
@@ -745,7 +737,10 @@ export default function MultiStepForm() {
                 </Button>
               </div>
             ))}
-            <Button onClick={() => addItem("references")}>
+            <Button
+              className="bg-green-500"
+              onClick={() => addItem("references")}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Reference
             </Button>
@@ -758,17 +753,32 @@ export default function MultiStepForm() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-background rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold mb-4">Multi-Step Form</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Multi-Step Form</h1>
+        {showButtons && (
+          <div className="space-x-2">
+            <Button onClick={autofillForm} className="bg-blue-500">
+              Autofill Form
+            </Button>
+            <Button className="bg-red-500" onClick={clearStoredData}>
+              Clear Stored Data
+            </Button>
+          </div>
+        )}
+      </div>
       <div className="mb-6">
         <div className="flex flex-wrap justify-between mb-2">
           {steps.map((step, index) => (
             <Button
               key={index}
               className={`mb-2 ${
-                isStepComplete(step) ? "bg-green-500 hover:bg-green-600" : ""
-              } ${index === currentStep ? "text-white bg-green-900" : ""}`}
-              onClick={() => isStepComplete(step) && setCurrentStep(index)}
-              disabled={!isStepComplete(step)}
+                isStepComplete(step) ? "bg-card-foreground hover:bg-card" : ""
+              } ${
+                index === currentStep
+                  ? "text-white bg-green-500 hover:bg-green-800"
+                  : ""
+              }`}
+              onClick={() => canSkipStep() && setCurrentStep(index)}
             >
               {index + 1}. {step.name}
             </Button>
@@ -793,10 +803,12 @@ export default function MultiStepForm() {
         <Button
           onClick={() => {
             if (currentStep === steps.length - 1) {
-              console.log(formData);
+              handleOnSubmit();
+            } else {
+              setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
             }
-            setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
           }}
+          disabled={!canProceed()}
         >
           {currentStep === steps.length - 1 ? "Submit" : "Next"}
         </Button>
