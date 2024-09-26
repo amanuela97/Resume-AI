@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, ChangeEvent, useEffect } from "react";
+import { useState, ChangeEvent, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Label } from "@/app/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
-import { PlusCircle, Trash2 } from "lucide-react";
-import { Section } from "@/app/utils/types";
+import { PlusCircle, Trash2, Upload } from "lucide-react";
+import { Section, ResumeInfo } from "@/app/utils/types";
 import { useAppStore } from "../store";
+import { toast } from "react-toastify";
 
 const steps = [
   { name: "Personal Information", required: ["fullName", "email"] },
@@ -27,15 +28,20 @@ const steps = [
 
 export default function MultiStepForm() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [showButtons, setShowButtons] = useState(false);
+  const [imagePreview, setImagePreview] = useState("");
   const { resumeInfo, setResumeInfo } = useAppStore(); // Use global state
-  const [showButtons, setShowButtons] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const storedData = localStorage.getItem("resumeInfo");
-    if (storedData) {
-      console.log(storedData);
-      setShowButtons(JSON.parse(storedData));
-    }
+    const loadCachedData = async () => {
+      const retrievedResume = localStorage.getItem("resumeInfo");
+      if (retrievedResume) {
+        console.log(retrievedResume);
+        setShowButtons(true);
+      }
+    };
+    loadCachedData();
   }, []);
 
   const handleInputChange = (
@@ -55,6 +61,22 @@ export default function MultiStepForm() {
       }
     } else {
       setResumeInfo({ ...resumeInfo, [name]: value });
+    }
+  };
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type === "image/png" || file.type === "image/jpeg") {
+        setResumeInfo({ ...resumeInfo, profileImage: file });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        toast.error("Please select a PNG or JPG image.");
+      }
     }
   };
 
@@ -86,7 +108,9 @@ export default function MultiStepForm() {
       if (Array.isArray(resumeInfo[field])) {
         return resumeInfo[field].every((item) => item.trim() !== "");
       }
-      return resumeInfo[field] && resumeInfo[field].trim() !== "";
+      return (
+        typeof resumeInfo[field] === "string" && resumeInfo[field].trim() !== ""
+      );
     });
   };
 
@@ -99,16 +123,21 @@ export default function MultiStepForm() {
     return requiredSteps.every((step) => isStepComplete(step));
   };
 
-  const handleOnSubmit = () => {
-    localStorage.setItem("resumeInfo", JSON.stringify(resumeInfo));
-    setShowButtons(false);
+  const handleOnSubmit = async () => {
+    localStorage.setItem(
+      "resumeInfo",
+      JSON.stringify({
+        ...resumeInfo,
+        profileImage: null,
+      })
+    );
   };
 
   const autofillForm = () => {
     const storedData = localStorage.getItem("resumeInfo");
     if (storedData) {
-      setResumeInfo(JSON.parse(storedData));
-      setShowButtons(false);
+      const parsedResumeInfo: ResumeInfo = JSON.parse(storedData);
+      setResumeInfo(parsedResumeInfo);
     }
   };
 
@@ -122,6 +151,32 @@ export default function MultiStepForm() {
       case 0:
         return (
           <div className="space-y-4">
+            <div className="flex flex-col items-center">
+              <div
+                className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Upload className="w-8 h-8 text-gray-400" />
+                )}
+              </div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept=".png,.jpg,.jpeg"
+                onChange={handleImageChange}
+              />
+              <Label htmlFor="profileImage" className="mt-2">
+                Profile Image (PNG or JPG)
+              </Label>
+            </div>
             <div>
               <Label htmlFor="fullName">Full Name *</Label>
               <Input
@@ -541,7 +596,10 @@ export default function MultiStepForm() {
                 </Button>
               </div>
             ))}
-            <Button onClick={() => addItem("projects")}>
+            <Button
+              className="bg-green-500"
+              onClick={() => addItem("projects")}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Project
             </Button>

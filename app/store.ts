@@ -35,60 +35,21 @@ export const useAppStore = create<AppState>((set) => ({
   coverLetter: null,
   coverLetters: [],
   resumeInfo: {
+    profileImage: null,
     fullName: "",
     email: "",
     phone: "",
     address: "",
     linkedin: "",
     careerObjective: "",
-    education: [
-      {
-        school: "",
-        degree: "",
-        fieldOfStudy: "",
-        graduationDate: "",
-        honors: "",
-      },
-    ],
-    workExperience: [
-      {
-        jobTitle: "",
-        companyName: "",
-        employmentDates: "",
-        responsibilities: "",
-        achievements: "",
-        location: "",
-      },
-    ],
-    skills: [{ skillName: "", skillLevel: "" }],
-    certifications: [
-      { certificationName: "", issuingOrganization: "", dateEarned: "" },
-    ],
-    projects: [
-      {
-        projectName: "",
-        projectDescription: "",
-        keyTechnologies: "",
-        projectDuration: "",
-      },
-    ],
-    volunteerExperience: [
-      {
-        volunteerOrg: "",
-        volunteerRole: "",
-        volunteerDuration: "",
-        volunteerResponsibilities: "",
-      },
-    ],
-    awards: [{ awardName: "", awardOrg: "", dateReceived: "" }],
-    references: [
-      {
-        refereeName: "",
-        refereeJobTitle: "",
-        refereeCompany: "",
-        refereeContact: "",
-      },
-    ],
+    education: [],
+    workExperience: [],
+    skills: [],
+    certifications: [],
+    projects: [],
+    volunteerExperience: [],
+    awards: [],
+    references: [],
     interests: "",
   }, // Initialize resumeInfo
   isLoading: false,

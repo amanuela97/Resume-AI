@@ -52,6 +52,7 @@ export function isTimestamp(value: any): value is Timestamp {
 }
 
 export type ResumeInfo = {
+  profileImage: File | null;
   fullName: string;
   email: string;
   phone: string;
