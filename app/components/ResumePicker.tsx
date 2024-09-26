@@ -89,7 +89,8 @@ export default function ResumePicker() {
 
   return (
     <div className="flex flex-col lg:flex-row h-auto">
-      <div className="w-full lg:w-1/2 p-4 lg:border-r bg-white">
+      <div className="w-full lg:w-1/2 p-4 lg:border-r">
+        <h1 className="text-2xl font-bold py-2">Pick A Template</h1>
         <div className="mb-4 relative">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -151,7 +152,7 @@ export default function ResumePicker() {
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 p-4 flex items-center justify-center min-h-[50vh] lg:min-h-0 bg-white">
+      <div className="w-full lg:w-1/2 p-4 flex items-center justify-center min-h-[50vh] lg:min-h-0 ">
         {selectedTemplate ? (
           <img
             src={selectedTemplate.imageUrl}

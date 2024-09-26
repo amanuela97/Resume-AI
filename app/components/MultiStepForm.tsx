@@ -26,7 +26,7 @@ const steps = [
   { name: "References", required: [] },
 ];
 
-export default function MultiStepForm() {
+export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showButtons, setShowButtons] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
@@ -37,7 +37,6 @@ export default function MultiStepForm() {
     const loadCachedData = async () => {
       const retrievedResume = localStorage.getItem("resumeInfo");
       if (retrievedResume) {
-        console.log(retrievedResume);
         setShowButtons(true);
       }
     };
@@ -131,6 +130,7 @@ export default function MultiStepForm() {
         profileImage: null,
       })
     );
+    onSubmit();
   };
 
   const autofillForm = () => {
