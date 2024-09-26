@@ -11,6 +11,7 @@ import { PlusCircle, Trash2, Upload } from "lucide-react";
 import { Section, ResumeInfo } from "@/app/utils/types";
 import { useAppStore } from "../store";
 import { toast } from "react-toastify";
+import { convertToFormData } from "../utils/helper";
 
 const steps = [
   { name: "Personal Information", required: ["fullName", "email"] },
@@ -70,6 +71,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
         setResumeInfo({ ...resumeInfo, profileImage: file });
         const reader = new FileReader();
         reader.onloadend = () => {
+          console.log(reader.result);
           setImagePreview(reader.result as string);
         };
         reader.readAsDataURL(file);
@@ -123,7 +125,25 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
   };
 
   const handleOnSubmit = async () => {
-    localStorage.setItem(
+    const formData = convertToFormData(resumeInfo);
+    const response = await fetch("/api/template", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.ok) {
+      console.log(response);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "resume.docx";
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } else {
+      alert("Failed to generate document");
+    }
+    /*localStorage.setItem(
       "resumeInfo",
       JSON.stringify({
         ...resumeInfo,
@@ -131,6 +151,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
       })
     );
     onSubmit();
+    */
   };
 
   const autofillForm = () => {
@@ -739,7 +760,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
               onChange={handleInputChange}
               value={resumeInfo.interests || ""}
               className="h-24"
-              placeholder="List your interests or hobbies"
+              placeholder="List your interests or hobbies as comma-separated like gym, running etc..."
             />
           </div>
         );

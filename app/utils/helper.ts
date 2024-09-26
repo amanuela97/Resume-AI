@@ -1,4 +1,9 @@
-import { Analysis, ContentType, CoverLetterResponseType } from "./types";
+import {
+  Analysis,
+  ContentType,
+  CoverLetterResponseType,
+  ResumeInfo,
+} from "./types";
 import { TDocumentDefinitions } from "pdfmake/interfaces";
 import htmlToPdfmake from "html-to-pdfmake";
 
@@ -116,3 +121,44 @@ export const formatCoverLetterBody = (
       <p>${content.conclusion}</p>
     `;
 };
+
+export function convertToFormData(resumeInfo: ResumeInfo) {
+  const formData = new FormData();
+  // Append scalar values
+  if (resumeInfo.profileImage) {
+    formData.append(
+      "profileImage",
+      resumeInfo.profileImage,
+      resumeInfo.profileImage.name
+    ); // Handle file upload separately
+  }
+  formData.append("fullName", resumeInfo.fullName);
+  formData.append("email", resumeInfo.email);
+  formData.append("phone", resumeInfo.phone);
+  formData.append("address", resumeInfo.address);
+  formData.append("linkedin", resumeInfo.linkedin);
+  formData.append("careerObjective", resumeInfo.careerObjective);
+  // Append array values as JSON strings or separate entries
+  const appendArrayAsJson = (key: string, array: any[]) => {
+    if (array.length > 0) {
+      formData.append(key, JSON.stringify(array));
+    }
+  };
+
+  appendArrayAsJson("education", resumeInfo.education);
+  appendArrayAsJson("workExperience", resumeInfo.workExperience);
+  appendArrayAsJson("skills", resumeInfo.skills);
+  appendArrayAsJson("certifications", resumeInfo.certifications);
+  appendArrayAsJson("projects", resumeInfo.projects);
+  appendArrayAsJson("volunteerExperience", resumeInfo.volunteerExperience);
+  appendArrayAsJson("awards", resumeInfo.awards);
+  appendArrayAsJson("references", resumeInfo.references);
+
+  // convert to array
+  const interests = resumeInfo.interests.split(",").map((field) => ({
+    name: field,
+  }));
+  appendArrayAsJson("interests", interests);
+
+  return formData;
+}
