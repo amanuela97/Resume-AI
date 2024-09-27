@@ -124,25 +124,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
   };
 
   const handleOnSubmit = async () => {
-    const formData = convertToFormData(resumeInfo);
-    const response = await fetch("/api/template", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (response.ok) {
-      console.log(response);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "resume.docx";
-      link.click();
-      window.URL.revokeObjectURL(url);
-    } else {
-      alert("Failed to generate document");
-    }
-    /*localStorage.setItem(
+    localStorage.setItem(
       "resumeInfo",
       JSON.stringify({
         ...resumeInfo,
@@ -150,7 +132,6 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
       })
     );
     onSubmit();
-    */
   };
 
   const autofillForm = () => {

@@ -1,13 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Plus, FileQuestion, Check } from "lucide-react";
+import { Search, Plus, Check, Download } from "lucide-react";
 import { Input } from "@/app/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/app/components/ui/popover";
+import { Button } from "@/app/components/ui/button";
+import { useAppStore } from "../store";
+import { convertToFormData } from "../utils/helper";
+import preview from "../../previews/template-1-preview.png";
+import DocxPreview from "./DocxPreview";
+import { toast } from "react-toastify";
 
 interface Template {
   id: string;
@@ -18,45 +24,23 @@ interface Template {
 const templates: Template[] = [
   {
     id: "1",
-    name: "Template 1",
-    imageUrl:
-      "https://plus.unsplash.com/premium_photo-1661779134041-9d618ec4c812?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    name: "template-1",
+    imageUrl: preview.src,
   },
   {
     id: "2",
-    name: "Template 2",
-    imageUrl:
-      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    name: "template-1",
+    imageUrl: preview.src,
   },
   {
     id: "3",
-    name: "Template 3",
-    imageUrl:
-      "https://plus.unsplash.com/premium_photo-1683491155621-cd42e847d646?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    name: "template-1",
+    imageUrl: preview.src,
   },
   {
     id: "4",
-    name: "Template 4",
-    imageUrl:
-      "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: "5",
-    name: "Template 5",
-    imageUrl:
-      "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: "6",
-    name: "Template 6",
-    imageUrl:
-      "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: "7",
-    name: "Template 7",
-    imageUrl:
-      "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    name: "template-1",
+    imageUrl: preview.src,
   },
 ];
 
@@ -77,15 +61,50 @@ const colors = [
 ];
 
 export default function ResumePicker() {
+  const [docBuffer, setDocBuffer] = useState<ArrayBuffer | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
     null
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedColor, setSelectedColor] = useState(colors[0]);
+  const { resumeInfo } = useAppStore();
 
   const filteredTemplates = templates.filter((template) =>
     template.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleSelection = async (template: Template) => {
+    setSelectedTemplate(template);
+    const formData = convertToFormData(resumeInfo);
+    formData.append("template", template.name + ".docx");
+    const response = await fetch("/api/template", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.ok) {
+      const buffer = await response.arrayBuffer();
+      setDocBuffer(buffer);
+    } else {
+      alert("Failed to generate document");
+    }
+  };
+
+  const DownloadDocx = () => {
+    if (!docBuffer) {
+      toast.error("Download Failed");
+      return;
+    }
+    const blob = new Blob([docBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "resume.docx";
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="flex flex-col lg:flex-row h-auto">
@@ -129,17 +148,17 @@ export default function ResumePicker() {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="h-[calc(100vh-80px)] lg:h-[calc(100vh-112px)] p-2 border border-gray-300  scrollbar scrollbar-thumb-gray-500 scrollbar-track-gray-200 overflow-y-scroll">
+        <div className="h-[calc(100vh-80px)] lg:h-[calc(100vh-112px)] p-2 bg-gray-100 border border-gray-300 scrollbar scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-y-scroll">
           <div className="grid grid-cols-2 gap-4">
             {filteredTemplates.map((template) => (
               <div
                 key={template.id}
-                className={`cursor-pointer border rounded-lg overflow-hidden ${
+                className={`cursor-pointer rounded-lg overflow-hidden border border-gray-400 ${
                   selectedTemplate?.id === template.id
                     ? "ring-2 ring-primary"
                     : ""
                 }`}
-                onClick={() => setSelectedTemplate(template)}
+                onClick={() => handleSelection(template)}
               >
                 <img
                   src={template.imageUrl}
@@ -152,19 +171,22 @@ export default function ResumePicker() {
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 p-4 flex items-center justify-center min-h-[50vh] lg:min-h-0 ">
-        {selectedTemplate ? (
-          <img
-            src={selectedTemplate.imageUrl}
-            alt={selectedTemplate.name}
-            className="max-w-full max-h-full object-contain"
-          />
-        ) : (
-          <div className="text-center text-muted-foreground">
-            <FileQuestion className="mx-auto h-12 w-12 mb-2" />
-            <p>No resume selected</p>
-          </div>
+      <div className="w-full lg:w-1/2 p-4 flex items-center justify-center min-h-[40vh] lg:min-h-0  relative">
+        {docBuffer && (
+          <Button
+            variant="outline"
+            className={`absolute top-4 right-4 z-10 bg-green-500 hover:bg-green-700 transition-opacity duration-700 ease-in-out ${
+              docBuffer ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={DownloadDocx}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download
+          </Button>
         )}
+        <div className="w-full h-full flex items-center justify-center">
+          <DocxPreview docBuffer={docBuffer} />
+        </div>
       </div>
     </div>
   );

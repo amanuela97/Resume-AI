@@ -72,7 +72,7 @@ export async function POST(req: Request) {
     const templatePath = path.join(
       process.cwd(),
       "templates",
-      "template-1.docx"
+      fields.template || "template-1.docx"
     );
     const content = fs.readFileSync(templatePath, "binary");
 
