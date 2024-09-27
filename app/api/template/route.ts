@@ -3,12 +3,20 @@ import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import fs from "fs";
 import path from "path";
-import ImageModule from "docxtemplater-image-module-free"; // Import the free image module
+import ImageModule from "docxtemplater-image-module-free";
 
 // Configure the API to not use bodyParser
 export const config = {
   api: {
     bodyParser: false,
+  },
+};
+
+const opts = {
+  centered: true,
+  fileType: "docx" as const,
+  getSize: function (img: Buffer): [number, number] {
+    return [150, 150]; // Return width and height
   },
 };
 
@@ -31,18 +39,6 @@ export async function POST(req: Request) {
         fields[key] = value as string;
       }
     }
-
-    // Ensure you have a Word document template
-    const templatePath = path.join(
-      process.cwd(),
-      "templates",
-      "template-1.docx"
-    );
-    const content = fs.readFileSync(templatePath, "binary");
-
-    // Create a zip of the docx content
-    const zip = new PizZip(content);
-    const doc = new Docxtemplater(zip);
 
     const parseFields = (resumeInfo: any) => {
       const {
@@ -72,19 +68,38 @@ export async function POST(req: Request) {
       };
     };
 
-    // Use the parsed fields in the document template
-    const parsedFields = parseFields(fields);
-    doc.setData({ ...parsedFields });
+    // Ensure you have a Word document template
+    const templatePath = path.join(
+      process.cwd(),
+      "templates",
+      "template-1.docx"
+    );
+    const content = fs.readFileSync(templatePath, "binary");
 
-    // Handle the profile image if it exists
-    if (files.profileImage) {
-      const imageBuffer = await files.profileImage.arrayBuffer();
-      const base64Image = Buffer.from(imageBuffer).toString("base64");
+    // Create a zip of the docx content
+    const zip = new PizZip(content);
 
-      // Here you can set the image data in the document
+    // Prepare data for docxtemplater
+    let doc: Docxtemplater<PizZip>;
+    if (files?.profileImage) {
+      const arrayBuffer = await files.profileImage.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      const imageModule = new ImageModule({
+        ...opts,
+        getImage: () => buffer, // Use buffer from uploaded file
+      });
+      doc = new Docxtemplater(zip, {
+        modules: [imageModule], // Register the image module
+      });
       doc.setData({
-        ...parsedFields,
-        profileImage: `data:image/png;base64,${base64Image}`, // Use the appropriate MIME type
+        ...parseFields(fields),
+        image: "path", // Ensure the correct data URI format
+      });
+    } else {
+      doc = new Docxtemplater(zip);
+      doc.setData({
+        ...parseFields(fields),
       });
     }
 

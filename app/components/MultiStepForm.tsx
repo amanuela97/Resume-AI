@@ -71,7 +71,6 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
         setResumeInfo({ ...resumeInfo, profileImage: file });
         const reader = new FileReader();
         reader.onloadend = () => {
-          console.log(reader.result);
           setImagePreview(reader.result as string);
         };
         reader.readAsDataURL(file);
