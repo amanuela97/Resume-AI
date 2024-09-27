@@ -11,7 +11,6 @@ import {
 import { Button } from "@/app/components/ui/button";
 import { useAppStore } from "../store";
 import { convertToFormData } from "../utils/helper";
-import preview from "../../previews/template-1-preview.png";
 import DocxPreview from "./DocxPreview";
 import { toast } from "react-toastify";
 
@@ -25,22 +24,22 @@ const templates: Template[] = [
   {
     id: "1",
     name: "template-1",
-    imageUrl: preview.src,
+    imageUrl: "/previews/template-1-preview.png",
   },
   {
     id: "2",
-    name: "template-1",
-    imageUrl: preview.src,
+    name: "template-2",
+    imageUrl: "/previews/template-2-preview.png",
   },
   {
     id: "3",
-    name: "template-1",
-    imageUrl: preview.src,
+    name: "template-3",
+    imageUrl: "/previews/template-3-preview.png",
   },
   {
     id: "4",
-    name: "template-1",
-    imageUrl: preview.src,
+    name: "template-4",
+    imageUrl: "/previews/template-4-preview.png",
   },
 ];
 

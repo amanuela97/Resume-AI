@@ -18,11 +18,14 @@ const DocxPreview = ({ docBuffer }: DocxPreviewProps) => {
     const generatePreview = async () => {
       if (previewRef.current && docBuffer) {
         setIsLoading(true);
+        previewRef.current.style.position = "absolute";
+        previewRef.current.style.top = "-9999px";
+        previewRef.current.style.display = "block";
         // Render the docx file into the previewRef element
         await renderAsync(docBuffer, previewRef.current);
 
-        previewRef.current.style.display = "block";
         const canvas = await html2canvas(previewRef.current, { useCORS: true });
+        previewRef.current.style.position = "";
         previewRef.current.style.display = "none";
         const imageUrl = canvas.toDataURL("image/png");
 
@@ -37,7 +40,10 @@ const DocxPreview = ({ docBuffer }: DocxPreviewProps) => {
 
   return (
     <div className="mt-6">
-      <div ref={previewRef} style={{ display: "block", overflowY: "auto" }} />
+      <div
+        ref={previewRef}
+        style={{ display: "block", position: "absolute", top: "-9999px" }}
+      />
       {thumbnailUrl ? (
         <Image
           src={thumbnailUrl}
