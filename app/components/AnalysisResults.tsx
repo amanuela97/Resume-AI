@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ContentType, isTimestamp } from "../utils/types";
 import { deleteDoc, doc } from "firebase/firestore";
 import { usePathname } from "next/navigation";
+import moment from "moment";
 
 export default function AnalysisResults() {
   const pathname = usePathname();
@@ -183,7 +184,7 @@ export default function AnalysisResults() {
           <p>
             Created At:{" "}
             {isTimestamp(analysis.createdAt)
-              ? analysis.createdAt.toDate().toLocaleString()
+              ? moment(analysis.createdAt.toDate()).fromNow()
               : "N/A"}
           </p>
         </div>

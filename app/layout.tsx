@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "@/app/components/Navbar"; // Ensure the correct import path
-import DataLoader from "@/app/components/DataLoader";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,7 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Navbar />
-        <DataLoader>{children}</DataLoader>
+        {children}
         <ToastContainer />
       </body>
     </html>

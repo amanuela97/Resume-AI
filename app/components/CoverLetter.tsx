@@ -1,5 +1,6 @@
 import "react-quill/dist/quill.snow.css"; // Import Quill styles
 import React, { useEffect, useState } from "react";
+import moment from "moment";
 import { db, saveCoverLetterToFirestore } from "@/app/utils/firebase"; // Assuming you have a firebase setup
 import { useAppStore } from "../store";
 import { Modal } from "./ui/modal";
@@ -121,13 +122,13 @@ const CoverLetterComponent: React.FC = () => {
             <p>
               Created At:{" "}
               {isTimestamp(coverLetter.createdAt)
-                ? coverLetter.createdAt.toDate().toLocaleString()
+                ? moment(coverLetter.createdAt.toDate()).fromNow()
                 : "N/A"}
             </p>
             <p>
               Updated At:{" "}
               {isTimestamp(coverLetter.updatedAt)
-                ? coverLetter.updatedAt.toDate().toLocaleString()
+                ? moment(coverLetter.updatedAt.toDate()).fromNow()
                 : "N/A"}
             </p>
           </div>

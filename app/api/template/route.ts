@@ -4,6 +4,7 @@ import Docxtemplater from "docxtemplater";
 import fs from "fs";
 import path from "path";
 import ImageModule from "docxtemplater-image-module-free";
+import { bucket } from "@/app/utils/firebaseAdmin";
 
 // Configure the API to not use bodyParser
 export const config = {
@@ -68,13 +69,10 @@ export async function POST(req: Request) {
       };
     };
 
-    // Ensure you have a Word document template
-    const templatePath = path.join(
-      process.cwd(),
-      "templates",
-      fields.template || "template-1.docx"
-    );
-    const content = fs.readFileSync(templatePath, "binary");
+    // Fetch .docx template from Firebase Storage using docxFileURL
+    const docxFileURL = fields.template; // Assumes templateURL is sent in the form
+    const fileResponse = await fetch(docxFileURL);
+    const content = await fileResponse.arrayBuffer();
 
     // Create a zip of the docx content
     const zip = new PizZip(content);

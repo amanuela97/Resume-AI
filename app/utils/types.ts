@@ -1,5 +1,38 @@
 import { FieldValue, Timestamp } from "firebase/firestore";
 
+export interface ColorOption {
+  value: string;
+  label: string;
+}
+
+export type uploadTemplateProp = {
+  name: string;
+  previewImage: File;
+  colorsArray: string[];
+  docxFile: File;
+};
+
+export type TemplateMetada = {
+  id: string;
+  name: string;
+  previewImageURL: string;
+  colors: string[];
+  docxFileURL: string;
+};
+
+export type CustomUser = {
+  displayName: string | null;
+  email: string | null;
+  emailVerified: boolean;
+  photoURL: string | null;
+  uid: string;
+  providerId: string;
+  creationTime: string | undefined;
+  lastSignInTime: string | undefined;
+  phoneNumber: string | null;
+  role: string;
+};
+
 export interface AnalysisResponseType {
   analysis: {
     match_score: number;

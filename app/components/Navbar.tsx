@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/app/store";
-import { FileChartColumn, Files, FileArchive, LogOut } from "lucide-react";
+import {
+  FileChartColumn,
+  Files,
+  FileArchive,
+  LogOut,
+  LayoutTemplate,
+  Hammer,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,12 +23,10 @@ import Image from "next/image";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-  const { user, setUser } = useAppStore();
+  const { user, logoutUser } = useAppStore();
 
   const handleLogout = () => {
-    // Implement logout logic here
-    localStorage.removeItem("user");
-    setUser(null);
+    logoutUser();
     router.push("/");
   };
 
@@ -51,10 +56,26 @@ export default function Navbar() {
               <DropdownMenuContent align="end" className="w-56 bg-card">
                 <DropdownMenuItem
                   className="cursor-pointer my-2 hover:bg-background"
+                  onClick={() => router.push("/build")}
+                >
+                  <Hammer className="mr-2 h-4 w-4" />
+                  <span>Create a Resume</span>
+                </DropdownMenuItem>
+                {user.role === "admin" && (
+                  <DropdownMenuItem
+                    className="cursor-pointer my-2 hover:bg-background"
+                    onClick={() => router.push("/template")}
+                  >
+                    <LayoutTemplate className="mr-2 h-4 w-4" />
+                    <span>Add a Template</span>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  className="cursor-pointer my-2 hover:bg-background"
                   onClick={() => router.push("/cover-letter")}
                 >
                   <FileArchive className="mr-2 h-4 w-4" />
-                  <span>cover letters</span>
+                  <span>Cover letters</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer my-2 hover:bg-background"

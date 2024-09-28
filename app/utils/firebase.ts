@@ -18,9 +18,21 @@ import {
   getDoc,
   QueryDocumentSnapshot,
   DocumentData,
+  addDoc,
 } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
-import { Analyses, Analysis, CoverLetter, FireBaseDate } from "./types";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import {
+  Analyses,
+  Analysis,
+  CoverLetter,
+  CustomUser,
+  FireBaseDate,
+  TemplateMetada,
+  uploadTemplateProp,
+} from "./types";
+import { isAdmin } from "./helper";
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-toastify";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -51,7 +63,41 @@ export const signInWithGoogle = async () => {
   }
 };
 
-export const storeUserData = async (user: User) => {
+const fetchUserByUid = async (uid: string): Promise<CustomUser | null> => {
+  try {
+    // Reference to the document in the 'users' collection using the uid
+    const userDocRef = doc(db, "users", uid);
+
+    // Fetch the document
+    const userDoc = await getDoc(userDocRef);
+
+    // Check if the document exists
+    if (userDoc.exists()) {
+      // Document data is found
+      const userData = userDoc.data() as CustomUser;
+      return userData; // Return the user data
+    } else {
+      // No such document
+      console.log("No user found with this UID.");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return null;
+  }
+};
+
+export const storeUserData = async (user: User): Promise<CustomUser> => {
+  if (!user) {
+    throw new Error("user is required");
+  }
+
+  const foundUser = await fetchUserByUid(user.uid);
+
+  if (foundUser) {
+    return foundUser;
+  }
+
   const {
     displayName,
     email,
@@ -73,12 +119,12 @@ export const storeUserData = async (user: User) => {
     creationTime,
     lastSignInTime,
     phoneNumber: user.phoneNumber || null,
+    role: isAdmin(email) ? "admin" : "user",
   };
 
   try {
     await setDoc(doc(db, "users", uid), userData);
-    // Store user data in local storage
-    localStorage.setItem("user", JSON.stringify(userData));
+    return userData;
   } catch (error) {
     console.error("Error storing user data:", error);
     throw error;
@@ -103,7 +149,7 @@ export const saveAnalysisToFirestore = async (analysis: Analysis) => {
   }
 };
 
-export const fetchAnalyses = async (user: User): Promise<Analyses> => {
+export const fetchAnalyses = async (user: CustomUser): Promise<Analyses> => {
   try {
     const q = query(
       collection(db, "analyses"),
@@ -200,4 +246,56 @@ export const formatFireStoreDate = (
     createdAt: doc.data().createdAt,
     updatedAt: doc.data().updatedAt,
   };
+};
+
+export const uploadTemplate = async ({
+  name,
+  previewImage,
+  colorsArray,
+  docxFile,
+}: uploadTemplateProp) => {
+  const storage = getStorage();
+  const db = getFirestore();
+
+  try {
+    const id = uuidv4();
+    // Upload the .docx file to Firebase Storage
+    const docxFileRef = ref(storage, `templates/${name}-${id}.docx`);
+    const docxSnapshot = await uploadBytes(docxFileRef, docxFile);
+    const docxFileURL = await getDownloadURL(docxSnapshot.ref);
+
+    // Upload the preview image to Firebase Storage
+    const imageFileRef = ref(storage, `templates/${name}-preview-${id}.png`);
+    const imageSnapshot = await uploadBytes(imageFileRef, previewImage);
+    const previewImageURL = await getDownloadURL(imageSnapshot.ref);
+
+    // Store the metadata in Firestore
+    await addDoc(collection(db, "templateMetadata"), {
+      name,
+      docxFileURL,
+      previewImageURL,
+      colors: colorsArray,
+    });
+    console.log("File uploaded and metadata saved successfully.");
+    toast.success("Template uploaded successfully.");
+  } catch (error) {
+    console.log("Error uploading file and saving metadata:", error);
+    throw error;
+  }
+};
+
+export const fetchTemplateMetadata = async (): Promise<TemplateMetada[]> => {
+  try {
+    const templateCollection = collection(db, "templateMetadata");
+    const templateSnapshot = await getDocs(templateCollection);
+
+    const templateList = templateSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as TemplateMetada[];
+    return templateList;
+  } catch (error) {
+    console.error("Error fetching cover letters", error);
+    throw error;
+  }
 };

@@ -162,3 +162,10 @@ export function convertToFormData(resumeInfo: ResumeInfo) {
 
   return formData;
 }
+
+export const isAdmin = (email: string | null): boolean => {
+  if (!email) return false;
+  const adminList = process.env.NEXT_PUBLIC_ADMIN_LIST;
+  const list = adminList ? adminList.split(",") : [];
+  return list.includes(email);
+};
