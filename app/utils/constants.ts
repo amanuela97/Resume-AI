@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ColorOption } from "./types";
 
 // Step 9: used to calculate the price based on GPT-3.5-turbo pricing ($0.0015 per 1k tokens)
 export const PRICE_PER_THOUSAND_TOKENS = 0.0015;
@@ -65,3 +66,20 @@ export const coverLetterSchema = z.object({
   }),
   conclusion: z.string(),
 });
+
+export const colorOptions: ColorOption[] = [
+  { value: "#FF1493", label: "Deep Pink" },
+  { value: "#808080", label: "Gray" },
+  { value: "#4169E1", label: "Royal Blue" },
+  { value: "#00BFFF", label: "Deep Sky Blue" },
+  { value: "#20B2AA", label: "Light Sea Green" },
+  { value: "#32CD32", label: "Lime Green" },
+  { value: "#9ACD32", label: "Yellow Green" },
+  { value: "#FFD700", label: "Gold" },
+  { value: "#FFA500", label: "Orange" },
+  { value: "#FF4500", label: "Orange Red" },
+  { value: "#FF69B4", label: "Hot Pink" },
+  { value: "#8A2BE2", label: "Blue Violet" },
+  { value: "#000000", label: "Black" },
+  { value: "#ffffff", label: "White" },
+];
