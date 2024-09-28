@@ -1,17 +1,7 @@
 import { NextResponse } from "next/server";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
-import fs from "fs";
-import path from "path";
 import ImageModule from "docxtemplater-image-module-free";
-import { bucket } from "@/app/utils/firebaseAdmin";
-
-// Configure the API to not use bodyParser
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 const opts = {
   centered: true,
