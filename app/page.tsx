@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { signInWithGoogle, storeUserData } from "./utils/firebase";
 import { useAppStore } from "./store";
 import GoogleSignInButton from "@/app/components/GoogleSignInButton";
+import { Button } from "./components/ui/button";
 
 export default function Home() {
   const router = useRouter();
@@ -32,12 +33,13 @@ export default function Home() {
           Optimize your resume for job applications using AI
         </p>
         {user ? (
-          <button
+          <Button
             onClick={() => router.push("/create")}
-            className="w-fit px-6 py-2bg-primary-light text-gray-800 hover:bg-card/80 focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 transition-colors"
+            /* className="w-fit px-6 bg-button-background py-2 hover:bg-card/80 focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 transition-colors" */
+            className="bg-button-bg hover:bg-button-hover active:bg-button-active dark:bg-button-bg dark:hover:bg-button-hover dark:active:bg-button-active text-button-text"
           >
             Start Using Resume AI
-          </button>
+          </Button>
         ) : (
           <GoogleSignInButton
             onClick={handleGoogleSignIn}

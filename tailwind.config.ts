@@ -23,6 +23,10 @@ const config: Config = {
         background: "hsl(var(--background))", // Ensure this is defined
         foreground: "hsl(var(--foreground))",
         card: "hsl(var(--card))",
+        'button-bg': 'hsl(var(--button-background) / <alpha-value>)',
+        'button-hover': 'hsl(var(--button-hover) / <alpha-value>)',
+        'button-active': 'hsl(var(--button-active) / <alpha-value>)',
+        'button-text': 'hsl(var(--button-text) / <alpha-value>)',
       },
       keyframes: {
         "accordion-down": {

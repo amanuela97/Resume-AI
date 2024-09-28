@@ -108,14 +108,14 @@ export default function Create() {
         <Button
           onClick={() => handleCreate(ContentType.analysis)}
           disabled={isLoadingAnalysis}
-          className="mt-8 bg-accent hover:bg-accent/90 text-accent-foreground"
+          className="mt-8 bg-button-bg hover:bg-button-hover active:bg-button-active dark:bg-button-bg dark:hover:bg-button-hover dark:active:bg-button-active text-button-text"
         >
           {isLoadingAnalysis ? "Analyzing..." : "Analyze Resume"}
         </Button>
         <Button
           onClick={() => handleCreate(ContentType.coverLetter)}
           disabled={isLoadingCoverLetter}
-          className="mt-8 bg-accent hover:bg-accent/90 text-accent-foreground"
+          className="mt-8 mx-2 bg-button-bg hover:bg-button-hover active:bg-button-active dark:bg-button-bg dark:hover:bg-button-hover dark:active:bg-button-active text-button-text"
         >
           {isLoadingCoverLetter
             ? "Creating Cover Letter..."

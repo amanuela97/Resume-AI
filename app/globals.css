@@ -46,6 +46,10 @@ body {
     --input: 214.3 31.8% 91.4%;
     --ring: 221 83% 53%;
     --radius: 0.5rem;
+    --button-background: 221 83% 28%;
+    --button-hover: 221 83% 63%;
+    --button-active: 221 83% 40%;
+    --button-text: 0 0% 100%;
   }
 
   .dark {
@@ -89,6 +93,10 @@ body {
     /* Darker inputs */
     --ring: 221 83% 63%;
     /* Slightly brighter blue ring */
+    --button-background: 132 83% 28%;
+    --button-hover: 221 83% 63%;
+    --button-active: 221 83% 40%;
+
   }
 }
 

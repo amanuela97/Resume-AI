@@ -55,7 +55,7 @@ export default function LinkTab() {
       <Button
         onClick={handleExtract}
         disabled={isExtracting}
-        className="bg-accent"
+        className="bg-button-bg hover:bg-button-hover active:bg-button-active dark:bg-button-bg dark:hover:bg-button-hover dark:active:bg-button-active text-button-text"
       >
         {isExtracting ? "Extracting..." : "Extract"}
       </Button>
