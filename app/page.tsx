@@ -12,11 +12,9 @@ export default function Home() {
   const handleGoogleSignIn = async () => {
     try {
       const user = await signInWithGoogle();
-      if (user) {
-        await storeUserData(user);
-        setUser(user);
-        router.push("/create");
-      }
+      const customUser = await storeUserData(user);
+      setUser(customUser);
+      router.push("/create");
     } catch (error) {
       console.error("Error signing in with Google:", error);
     }

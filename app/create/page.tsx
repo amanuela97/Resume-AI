@@ -16,6 +16,7 @@ import {
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { formatCoverLetterBody } from "../utils/helper";
+import { serverTimestamp } from "firebase/firestore";
 
 export default function Create() {
   const [isVisible, setIsVisible] = useState<null | ContentType>(null);
@@ -63,7 +64,11 @@ export default function Create() {
 
       if (contentType === ContentType.analysis) {
         const { analysis }: AnalysisResponseType = await response.json();
-        setAnalysis(analysis);
+        setAnalysis({
+          ...analysis,
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+        });
       } else if (contentType === ContentType.coverLetter) {
         const { coverLetter }: CoverLetterResponseType = await response.json();
         setCoverLetter({
@@ -71,6 +76,8 @@ export default function Create() {
           userId: user.uid,
           id: uuidv4(),
           content: formatCoverLetterBody(coverLetter), //
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
         });
       }
 

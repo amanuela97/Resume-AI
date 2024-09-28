@@ -1,5 +1,6 @@
 import "react-quill/dist/quill.snow.css"; // Import Quill styles
 import React, { useEffect, useState } from "react";
+import moment from "moment";
 import { db, saveCoverLetterToFirestore } from "@/app/utils/firebase"; // Assuming you have a firebase setup
 import { useAppStore } from "../store";
 import { Modal } from "./ui/modal";
@@ -7,7 +8,7 @@ import { Button } from "./ui/button";
 import { toast } from "react-toastify";
 import DownloadButton from "./DownloadButton";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { ContentType } from "../utils/types";
+import { ContentType, isTimestamp } from "../utils/types";
 import { deleteDoc, doc } from "firebase/firestore";
 import { FaTrash } from "react-icons/fa";
 import { usePathname } from "next/navigation";
@@ -115,6 +116,22 @@ const CoverLetterComponent: React.FC = () => {
             }}
             theme="snow"
           />
+        )}
+        {coverLetter && (
+          <div className="mt-4 text-sm text-gray-500">
+            <p>
+              Created At:{" "}
+              {isTimestamp(coverLetter.createdAt)
+                ? moment(coverLetter.createdAt.toDate()).fromNow()
+                : "N/A"}
+            </p>
+            <p>
+              Updated At:{" "}
+              {isTimestamp(coverLetter.updatedAt)
+                ? moment(coverLetter.updatedAt.toDate()).fromNow()
+                : "N/A"}
+            </p>
+          </div>
         )}
       </CardContent>
 
