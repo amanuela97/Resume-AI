@@ -102,7 +102,7 @@ export default function ResumePicker() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col lg:flex-row h-auto">
+      <div className="flex flex-col lg:flex-row h-full p-2">
         <div className="w-full lg:w-1/2 p-4 lg:border-r">
           <h1 className="text-2xl font-bold py-2">Pick A Template</h1>
           <div className="mb-4 relative">
@@ -145,7 +145,7 @@ export default function ResumePicker() {
               </PopoverContent>
             </Popover>
           </div>
-          <div className="h-[calc(100vh-80px)] lg:h-[calc(100vh-112px)] p-2 bg-gray-100 border border-gray-300 scrollbar scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-y-scroll">
+          <div className="h-auto lg:h-[calc(100vh-112px)] p-2 bg-gray-100 border border-gray-300 scrollbar scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-y-scroll">
             <div className="grid grid-cols-2 gap-4">
               {filteredTemplates.length > 0 ? (
                 filteredTemplates.map((template) => (
@@ -178,28 +178,30 @@ export default function ResumePicker() {
           </div>
         </div>
 
-        <div className="w-full lg:w-1/2 p-4 flex items-center justify-center min-h-[40vh] lg:min-h-0  relative">
-          {docBuffer && (
-            <div className="absolute top-4 right-4 z-10">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="mr-2">
-                    <Download className="mr-2 h-4 w-4" />
-                    {isDownloading ? "Downloading..." : "Download"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => downloadFile()}
-                    className="hover:bg-card cursor-pointer"
-                  >
-                    Download Docx
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
-          <div className="w-full h-full flex items-center justify-center">
+        <div className="w-full lg:w-1/2 p-4 flex items-center justify-center min-h-[40vh] lg:min-h-0 relative mb-6">
+          <div
+            className={` absolute top-4 right-4 z-10  transition-opacity duration-700 ease-in-out ${
+              docBuffer ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="mr-2">
+                  <Download className="mr-2 h-4 w-4" />
+                  {isDownloading ? "Downloading..." : "Download"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => downloadFile()}
+                  className="hover:bg-card cursor-pointer"
+                >
+                  Download Docx
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="w-full h-full flex items-center justify-center mt-6">
             <DocxPreview docBuffer={docBuffer} />
           </div>
         </div>
