@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Search, Plus, Check, Download } from "lucide-react";
 import { Input } from "@/app/components/ui/input";
 import {
@@ -159,10 +160,13 @@ export default function ResumePicker() {
                         }`}
                         onClick={() => handleSelection(template)}
                       >
-                        <img
+                        <Image
                           src={template.previewImageURL}
                           alt={template.name}
-                          className="w-full h-auto"
+                          width={300}
+                          height={0}
+                          layout="responsive" // Maintains aspect ratio and makes height auto
+                          objectFit="contain" // Ensures the image fits within the container
                         />
                       </div>
                     </TooltipTrigger>
