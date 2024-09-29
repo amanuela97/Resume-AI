@@ -19,6 +19,7 @@ import {
   QueryDocumentSnapshot,
   DocumentData,
   addDoc,
+  updateDoc,
 } from "firebase/firestore";
 import {
   getDownloadURL,
@@ -33,6 +34,8 @@ import {
   CoverLetter,
   CustomUser,
   FireBaseDate,
+  Reply,
+  Review,
   TemplateMetada,
   uploadTemplateProp,
 } from "./types";
@@ -326,6 +329,53 @@ export const uploadImageToFirebase = async ({
     return url;
   } catch (error) {
     console.error("Error uploading image:", error);
+    return null;
+  }
+};
+
+export const fetchReviews = async (): Promise<Review[] | null> => {
+  try {
+    const reviewsCollection = collection(db, "reviews");
+    const reviewSnapshot = await getDocs(reviewsCollection);
+    const reviewList = reviewSnapshot.docs.map((doc) => ({
+      ...doc.data(),
+    })) as Review[];
+    return reviewList;
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    return null;
+  }
+};
+
+export const addReview = async (review: Review): Promise<Review | null> => {
+  try {
+    const newReviewData = {
+      ...review,
+      replies: [],
+    };
+    const reviewDoc = doc(db, "reviews", review.id);
+    await setDoc(reviewDoc, newReviewData);
+    toast.success("added review successfully");
+    return newReviewData;
+  } catch (error) {
+    console.error("Error adding review:", error);
+    return null;
+  }
+};
+
+export const addReply = async (
+  review: Review,
+  reply: Reply
+): Promise<Reply | null> => {
+  try {
+    const reviewDoc = doc(db, "reviews", review.id);
+    await updateDoc(reviewDoc, {
+      replies: [...review.replies, reply],
+    });
+    toast.success("added reply successfully");
+    return reply;
+  } catch (error) {
+    console.error("Error adding reply:", error);
     return null;
   }
 };

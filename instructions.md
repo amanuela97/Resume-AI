@@ -1,2 +1,12 @@
-- save the state of the ReactQuill editor in to the global store defined in store.ts file when the user makes changes.
-- when the user clicks the save cover letter button, save it to firestore under "coverLetters" collections including the userId, title, and id of the coverLetter
+- I want to create a reviews page user interface similar the attached image.
+- A review will have a "name", "jobTitle", "rating", "review", "image", and "replies".
+- "replies" is an array of reply.
+- A reply has a "name" = string, and a "reply" = string.
+- "image" is an optional field.
+- "rating" will be from 1 to 5.
+- A user can leave multiple reviews.
+- A reply can only be made by a user with an "admin" role.
+- I also want to show at the top of all the reviews the total review count
+- Make sure to seperate parts into different components if possible.
+- Display the first 10 review then add a button at the bottom that says "show more".
+- when the "show more" button is clicked display 5 more reviews and so on.

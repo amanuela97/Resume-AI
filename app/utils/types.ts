@@ -1,5 +1,24 @@
 import { FieldValue, Timestamp } from "firebase/firestore";
 
+export type Reply = {
+  name: string;
+  reply: string;
+  updatedAt: string;
+  createdAt: string;
+};
+
+export type Review = {
+  id: string;
+  name: string;
+  jobTitle: string;
+  rating: number;
+  review: string;
+  image: string | null;
+  replies: Reply[];
+  updatedAt: FireBaseDate;
+  createdAt: FireBaseDate;
+};
+
 export interface ColorOption {
   value: string;
   label: string;
