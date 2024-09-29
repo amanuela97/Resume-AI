@@ -39,8 +39,7 @@ export default function Component() {
       image: user ? user.photoURL : null,
       ...reviewState,
       replies: [],
-      updatedAt: serverTimestamp(),
-      createdAt: serverTimestamp(),
+      createdAt: new Date().toISOString(),
     });
     if (newReview) {
       setReviews([newReview, ...reviews]);

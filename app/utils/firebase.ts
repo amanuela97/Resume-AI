@@ -379,3 +379,39 @@ export const addReply = async (
     return null;
   }
 };
+
+export const deleteReply = async (
+  reviewId: string,
+  replyIndex: number
+): Promise<Reply[] | null> => {
+  try {
+    // Step 1: Fetch the review document from Firestore
+    const reviewDocRef = doc(db, "reviews", reviewId);
+    const reviewDoc = await getDoc(reviewDocRef);
+
+    if (reviewDoc.exists()) {
+      const reviewData = reviewDoc.data() as Review;
+
+      // Step 2: Check if replies exist in the review data
+      const existingReplies = reviewData?.replies || [];
+
+      // Step 3: Remove the reply at the specified index
+      const updatedReplies = existingReplies.filter(
+        (_: any, index: number) => index !== replyIndex
+      );
+
+      // Step 4: Update the Firestore document with the updated replies array
+      await updateDoc(reviewDocRef, {
+        replies: updatedReplies,
+      });
+      toast.success("reply was successfully removed");
+      return updatedReplies;
+    } else {
+      console.log("reply does not exists.");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error deleting reply: ", error);
+    return null;
+  }
+};

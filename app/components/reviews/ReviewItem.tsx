@@ -9,8 +9,9 @@ import { Button } from "@/app/components/ui/button";
 import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { Textarea } from "@/app/components/ui/textarea";
-import { addReply } from "@/app/utils/firebase";
+import { addReply, deleteReply } from "@/app/utils/firebase";
 import { useAppStore } from "@/app/store";
+import moment from "moment";
 
 export const ReviewItem = ({ review }: { review: Review }) => {
   const { user, reviews, setReviews } = useAppStore();
@@ -21,10 +22,10 @@ export const ReviewItem = ({ review }: { review: Review }) => {
     e.preventDefault();
     if (replyText.trim() && user?.displayName) {
       const newReply = await addReply(review, {
+        id: user.uid,
         name: user.displayName,
         reply: replyText,
-        updatedAt: Date.now().toLocaleString(),
-        createdAt: Date.now().toLocaleString(),
+        createdAt: new Date().toISOString(),
       });
 
       if (newReply) {
@@ -42,6 +43,23 @@ export const ReviewItem = ({ review }: { review: Review }) => {
         setIsReplyFormOpen(false);
         setReplyText("");
       }
+    }
+  };
+
+  const handleReplyDelete = async (index: number) => {
+    const updatedReply = await deleteReply(review.id, index);
+    if (updatedReply) {
+      const newReviews = reviews.map((r) => {
+        if (r.id === review.id) {
+          const updatedreview = {
+            ...r,
+            replies: updatedReply,
+          } as Review;
+          return updatedreview;
+        }
+        return r;
+      });
+      setReviews(newReviews);
     }
   };
 
@@ -79,6 +97,9 @@ export const ReviewItem = ({ review }: { review: Review }) => {
             <StarRating rating={review.rating} />
           </div>
           <p className="mb-4">{review.review}</p>
+          <p className="mb-4 text-sm text-gray-500">
+            {moment(review.createdAt).fromNow()}
+          </p>
         </div>
       </div>
       {isReplyFormOpen && (
@@ -109,8 +130,21 @@ export const ReviewItem = ({ review }: { review: Review }) => {
       )}
       {review.replies.map((reply, index) => (
         <div key={index} className="bg-card p-4 rounded-lg mb-4 ml-16">
-          <h4 className="font-bold mb-2">{reply.name}</h4>
+          <div className="flex flex-row justify-between items-center">
+            <h4 className="font-bold mb-2">{reply.name}</h4>
+            {reply.id === user?.uid && (
+              <Button
+                onClick={() => handleReplyDelete(index)}
+                className="mb-4 text-sm bg-red-500"
+              >
+                Delete
+              </Button>
+            )}
+          </div>
           <p>{reply.reply}</p>
+          <p className="mb-4 text-sm text-gray-500">
+            {moment(reply.createdAt).fromNow()}
+          </p>
         </div>
       ))}
     </div>

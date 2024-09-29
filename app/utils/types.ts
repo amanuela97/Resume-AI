@@ -1,9 +1,9 @@
 import { FieldValue, Timestamp } from "firebase/firestore";
 
 export type Reply = {
+  id: string;
   name: string;
   reply: string;
-  updatedAt: string;
   createdAt: string;
 };
 
@@ -15,8 +15,7 @@ export type Review = {
   review: string;
   image: string | null;
   replies: Reply[];
-  updatedAt: FireBaseDate;
-  createdAt: FireBaseDate;
+  createdAt: string;
 };
 
 export interface ColorOption {

@@ -164,8 +164,7 @@ export default function ResumePicker() {
                           src={template.previewImageURL}
                           alt={template.name}
                           width={300}
-                          height={0}
-                          layout="responsive" // Maintains aspect ratio and makes height auto
+                          height={420}
                           objectFit="contain" // Ensures the image fits within the container
                         />
                       </div>
