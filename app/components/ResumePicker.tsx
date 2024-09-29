@@ -202,7 +202,10 @@ export default function ResumePicker() {
             </DropdownMenu>
           </div>
           <div className="w-full h-full flex items-center justify-center mt-6">
-            <DocxPreview docBuffer={docBuffer} />
+            <DocxPreview
+              docBuffer={docBuffer}
+              templateName={selectedTemplate?.name ?? "default"}
+            />
           </div>
         </div>
       </div>
