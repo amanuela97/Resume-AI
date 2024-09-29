@@ -4,12 +4,14 @@ import { renderAsync } from "docx-preview";
 import html2canvas from "html2canvas";
 import { FileQuestion } from "lucide-react";
 import Image from "next/image";
+import ShareResume from "./ShareResume";
 
 interface DocxPreviewProps {
   docBuffer: ArrayBuffer | null;
+  templateName: string;
 }
 
-const DocxPreview = ({ docBuffer }: DocxPreviewProps) => {
+const DocxPreview = ({ docBuffer, templateName }: DocxPreviewProps) => {
   const previewRef = useRef<HTMLDivElement>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -40,6 +42,9 @@ const DocxPreview = ({ docBuffer }: DocxPreviewProps) => {
 
   return (
     <div className="mt-6">
+      {thumbnailUrl && (
+        <ShareResume imageUrl={thumbnailUrl} templateName={templateName} />
+      )}
       <div
         ref={previewRef}
         style={{ display: "block", position: "absolute", top: "-9999px" }}

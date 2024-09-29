@@ -20,7 +20,13 @@ import {
   DocumentData,
   addDoc,
 } from "firebase/firestore";
-import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytes,
+  uploadString,
+} from "firebase/storage";
 import {
   Analyses,
   Analysis,
@@ -297,5 +303,29 @@ export const fetchTemplateMetadata = async (): Promise<TemplateMetada[]> => {
   } catch (error) {
     console.error("Error fetching cover letters", error);
     throw error;
+  }
+};
+
+export const uploadImageToFirebase = async ({
+  uid,
+  imageUrl,
+  templateName,
+}: {
+  uid: string;
+  imageUrl: string;
+  templateName: string;
+}): Promise<string | null> => {
+  const storageRef = ref(storage, `resumeImages/${uid}/${templateName}.png`);
+
+  try {
+    // Upload the base64 image string to Firebase
+    await uploadString(storageRef, imageUrl, "data_url");
+
+    // Get the download URL
+    const url = await getDownloadURL(storageRef);
+    return url;
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    return null;
   }
 };
