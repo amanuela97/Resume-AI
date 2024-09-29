@@ -2,39 +2,35 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/utils/firebase";
+import { fetchAnalysis } from "@/app/utils/firebase";
 import AnalysisResults from "@/app/components/AnalysisResults";
-import { Analysis } from "@/app/utils/types";
 import { Button } from "@/app/components/ui/button";
 import Loader from "@/app/components/Loader";
 import ProtectedRoute from "@/app/components/ProtectedRoute";
+import { useAppStore } from "@/app/store";
 
 export default function AnalysisDetail() {
   const { id } = useParams();
-  const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const router = useRouter();
+  const { setAnalysis } = useAppStore();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAnalysis = async () => {
-      if (!id || typeof id !== "string") {
-        console.error(`id: ${id} does not exist or is malformed`);
-        return;
+    const fetchAnalysisData = async () => {
+      setLoading(true);
+      if (id && typeof id === "string") {
+        const analysisData = await fetchAnalysis(id);
+        if (analysisData) {
+          setAnalysis(analysisData);
+        }
       }
-      const docRef = doc(db, "analyses", id);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        setAnalysis(docSnap.data() as Analysis);
-      } else {
-        console.error("No such document!");
-      }
+      setLoading(false);
     };
 
-    fetchAnalysis();
+    fetchAnalysisData();
   }, [id]);
 
-  if (!analysis) {
+  if (loading) {
     return <Loader />;
   }
 
@@ -44,7 +40,7 @@ export default function AnalysisDetail() {
         <Button onClick={() => router.push("/analyses")} className="mb-4">
           Show All Analyses
         </Button>
-        <AnalysisResults analysis={analysis} />
+        <AnalysisResults />
       </div>
     </ProtectedRoute>
   );

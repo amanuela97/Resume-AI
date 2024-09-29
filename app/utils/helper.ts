@@ -1,5 +1,11 @@
-import { AnalysisResponseType } from "./types";
+import {
+  Analysis,
+  ContentType,
+  CoverLetterResponseType,
+  ResumeInfo,
+} from "./types";
 import { TDocumentDefinitions } from "pdfmake/interfaces";
+import htmlToPdfmake from "html-to-pdfmake";
 
 export const convertMessageContentToString = (result: any): string => {
   let contentString: string;
@@ -20,53 +26,62 @@ export const convertMessageContentToString = (result: any): string => {
 };
 
 export const docDefinition = (
-  data: AnalysisResponseType["analysis"]
+  data: Analysis | string
 ): TDocumentDefinitions => {
-  return {
-    content: [
-      { text: "Candidate Resume Evaluation", style: "header" },
-      { text: `Match Score: ${data.match_score}`, style: "subheader" },
+  if (typeof data !== "string") {
+    return {
+      content: [
+        { text: "Candidate Resume Evaluation", style: "header" },
+        { text: `Match Score: ${data.match_score}`, style: "subheader" },
 
-      { text: "Strengths", style: "sectionHeader" },
-      {
-        ul: data.strengths.map((strength) => ({ text: strength })),
-      },
+        { text: "Strengths", style: "sectionHeader" },
+        {
+          ul: data.strengths.map((strength) => ({ text: strength })),
+        },
 
-      { text: "Weaknesses", style: "sectionHeader" },
-      {
-        ul: data.weaknesses.map((weakness) => ({ text: weakness })),
-      },
+        { text: "Weaknesses", style: "sectionHeader" },
+        {
+          ul: data.weaknesses.map((weakness) => ({ text: weakness })),
+        },
 
-      { text: "Recommendation", style: "sectionHeader" },
-      { text: data.recommendation, margin: [0, 0, 0, 10] },
-    ],
-    styles: {
-      header: {
-        fontSize: 22,
-        bold: true,
-        margin: [0, 0, 0, 10],
+        { text: "Recommendation", style: "sectionHeader" },
+        { text: data.recommendation, margin: [0, 0, 0, 10] },
+      ],
+      styles: {
+        header: {
+          fontSize: 22,
+          bold: true,
+          margin: [0, 0, 0, 10],
+        },
+        subheader: {
+          fontSize: 18,
+          bold: true,
+          margin: [0, 10, 0, 5],
+        },
+        sectionHeader: {
+          fontSize: 16,
+          bold: true,
+          margin: [0, 10, 0, 5],
+        },
+        defaultStyle: {
+          fontSize: 12,
+          margin: [0, 5, 0, 5],
+        },
       },
-      subheader: {
-        fontSize: 18,
-        bold: true,
-        margin: [0, 10, 0, 5],
-      },
-      sectionHeader: {
-        fontSize: 16,
-        bold: true,
-        margin: [0, 10, 0, 5],
-      },
-      defaultStyle: {
-        fontSize: 12,
-        margin: [0, 5, 0, 5],
-      },
-    },
-  };
+    };
+  } else {
+    const parsedContent = htmlToPdfmake(data);
+    return {
+      content: parsedContent,
+    };
+  }
 };
 
-export const formatJsonToText = (
-  jsonData: AnalysisResponseType["analysis"]
-) => {
+export const formatToText = (jsonData: Analysis | string) => {
+  if (typeof jsonData === "string") {
+    const plainText = jsonData.replace(/<[^>]*>/g, ""); // Remove HTML tags
+    return plainText;
+  }
   let textContent = `Candidate Evaluation\n\n`;
 
   textContent += `Match Score: ${jsonData.match_score}\n\n`;
@@ -85,4 +100,72 @@ export const formatJsonToText = (
   textContent += `  ${jsonData.recommendation}\n`;
 
   return textContent;
+};
+
+// Function to format the cover letter body
+export const formatCoverLetterBody = (
+  content: CoverLetterResponseType[ContentType.coverLetter]
+): string => {
+  return `
+      <h1>Introduction</h1>
+      <p>${content.introduction}</p>
+      <h2>Relevant Experience</h2>
+      <p>${content.body.relevant_experience}</p>
+      <h2>Skills Match</h2>
+      <p>${content.body.skills_match}</p>
+      <h2>Cultural Fit</h2>
+      <p>${content.body.cultural_fit}</p>
+      <h2>Motivation</h2>
+      <p>${content.body.motivation}</p>
+      <h2>Conclusion</h2>
+      <p>${content.conclusion}</p>
+    `;
+};
+
+export function convertToFormData(resumeInfo: ResumeInfo) {
+  const formData = new FormData();
+  // Append scalar values
+  if (resumeInfo.profileImage) {
+    formData.append(
+      "profileImage",
+      resumeInfo.profileImage,
+      resumeInfo.profileImage.name
+    ); // Handle file upload separately
+  }
+  formData.append("fullName", resumeInfo.fullName);
+  formData.append("email", resumeInfo.email);
+  formData.append("phone", resumeInfo.phone);
+  formData.append("address", resumeInfo.address);
+  formData.append("linkedin", resumeInfo.linkedin);
+  formData.append("careerObjective", resumeInfo.careerObjective);
+  // Append array values as JSON strings or separate entries
+  const appendArrayAsJson = (key: string, array: any[]) => {
+    if (array.length > 0) {
+      formData.append(key, JSON.stringify(array));
+    }
+  };
+
+  appendArrayAsJson("education", resumeInfo.education);
+  appendArrayAsJson("workExperience", resumeInfo.workExperience);
+  appendArrayAsJson("skills", resumeInfo.skills);
+  appendArrayAsJson("certifications", resumeInfo.certifications);
+  appendArrayAsJson("projects", resumeInfo.projects);
+  appendArrayAsJson("volunteerExperience", resumeInfo.volunteerExperience);
+  appendArrayAsJson("awards", resumeInfo.awards);
+  appendArrayAsJson("references", resumeInfo.references);
+
+  // convert to array
+  const interests = resumeInfo.interests.split(",").map((field) => ({
+    name: field,
+  }));
+  appendArrayAsJson("interests", interests);
+
+  return formData;
+}
+
+export const isAdmin = (email: string | null): boolean => {
+  if (!email) return false;
+  const adminList = process.env.NEXT_PUBLIC_ADMIN_LIST;
+  const list = adminList ? adminList.split(",") : [];
+  return list.includes(email);
 };

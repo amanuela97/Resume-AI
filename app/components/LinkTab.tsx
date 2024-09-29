@@ -5,18 +5,10 @@ import { useAppStore } from "@/app/store";
 import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
 import { toast } from "react-toastify";
-import { CheckCircle, XCircle } from "lucide-react";
-import { ExtractionStatusType } from "../utils/types";
 
 export default function LinkTab() {
   const [url, setUrl] = useState("");
-  const {
-    setJobDescription,
-    setIsExtracting,
-    extractionStatus,
-    setExtractionStatus,
-    isExtracting,
-  } = useAppStore();
+  const { setJobDescription, setIsExtracting, isExtracting } = useAppStore();
 
   const handleExtract = async () => {
     if (!url) {
@@ -25,13 +17,15 @@ export default function LinkTab() {
     }
 
     setIsExtracting(true);
-    setExtractionStatus(ExtractionStatusType.idle);
 
     try {
-      const response = await fetch("/api/extract", {
-        method: "POST",
-        body: new URLSearchParams({ url }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/extract`,
+        {
+          method: "POST",
+          body: new URLSearchParams({ url }),
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();
@@ -40,11 +34,9 @@ export default function LinkTab() {
 
       const data = await response.json();
       setJobDescription(data.text);
-      setExtractionStatus(ExtractionStatusType.success);
       toast.success("Text extracted successfully!");
     } catch (error: any) {
       console.error("Error extracting text:", error);
-      setExtractionStatus(ExtractionStatusType.fail);
       toast.error("Failed to extract text.");
     } finally {
       setIsExtracting(false);
@@ -67,21 +59,6 @@ export default function LinkTab() {
       >
         {isExtracting ? "Extracting..." : "Extract"}
       </Button>
-      {extractionStatus !== "idle" && (
-        <div className="mt-2 flex items-center">
-          {extractionStatus === "success" ? (
-            <>
-              <CheckCircle className="text-green-500 mr-2" />
-              <span className="text-green-700">Extraction successful</span>
-            </>
-          ) : (
-            <>
-              <XCircle className="text-red-500 mr-2" />
-              <span className="text-red-700">Extraction failed</span>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 }

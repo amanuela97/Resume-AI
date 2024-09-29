@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
+import fetch from "node-fetch";
 
 const urlSchema = z.string().url();
 
@@ -16,14 +16,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "domcontentloaded" });
+    const response = await fetch(
+      `http://api.scraperapi.com?api_key=${process.env.SCRAPE_API_KEY}&url=${url}`
+    );
+    const html = await response.text();
 
-    const content = await page.content();
-    await browser.close();
-
-    const $ = cheerio.load(content);
+    const $ = cheerio.load(html);
     let text = $("body").text();
     text = text.replace(/\s+/g, " ").trim();
     text = text.substring(0, 2800); // Extract up to 2800 characters
