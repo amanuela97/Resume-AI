@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import ProtectedRoute from "../components/ProtectedRoute"; // Import the ProtectedRoute component
 import ResumeUpload from "../components/ResumeUpload";
 import JobDescription from "../components/JobDescription";
@@ -117,16 +118,28 @@ export default function Create() {
           disabled={isLoadingAnalysis}
           className="mt-8 bg-button-bg hover:bg-button-hover active:bg-button-active dark:bg-button-bg dark:hover:bg-button-hover dark:active:bg-button-active text-button-text"
         >
-          {isLoadingAnalysis ? "Analyzing..." : "Analyze Resume"}
+          {isLoadingAnalysis ? (
+            <>
+              <span className="animate-spin mr-2">&#9696;</span>
+              Analyzing...
+            </>
+          ) : (
+            "Analyze Resume"
+          )}
         </Button>
         <Button
           onClick={() => handleCreate(ContentType.coverLetter)}
           disabled={isLoadingCoverLetter}
           className="mt-8 mx-2 bg-button-bg hover:bg-button-hover active:bg-button-active dark:bg-button-bg dark:hover:bg-button-hover dark:active:bg-button-active text-button-text"
         >
-          {isLoadingCoverLetter
-            ? "Creating Cover Letter..."
-            : "Create Cover Letter"}
+          {isLoadingCoverLetter ? (
+            <>
+              <span className="animate-spin mr-2">&#9696;</span>
+              Creating Cover Letter...
+            </>
+          ) : (
+            "Create Cover Letter"
+          )}
         </Button>
         {isVisible === ContentType.coverLetter && <CoverLetterComponent />}
         {isVisible === ContentType.analysis && <AnalysisResults />}
