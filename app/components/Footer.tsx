@@ -7,19 +7,19 @@ export default function Footer() {
             <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center">
                 <div className="flex items-center mb-4 sm:mb-0">
                     <FileChartColumn className="h-6 w-6" />
-                    <span className="ml-2 font-semibold">Resume-AI</span>
+                    <span className="ml-2 font-semibold">Resume AI</span>
                 </div>
                 <nav className="flex flex-wrap justify-center sm:justify-end space-x-4">
-                    <Link href="/faq" className="hover:underline text-sm mb-2 sm:mb-0">
+                    <Link href="https://functional-van-16a.notion.site/FAQ-10c989127eb280f0bf4aed662e2034e7" target="_blank" className="hover:underline text-sm mb-2 sm:mb-0">
                         FAQ
                     </Link>
-                    <Link href="/terms" className="hover:underline text-sm mb-2 sm:mb-0">
+                    <Link href="https://www.notion.so/Terms-of-Use-10c989127eb280a2bf97f0c972dacfc7" target="_blank" className="hover:underline text-sm mb-2 sm:mb-0">
                         Terms
                     </Link>
-                    <Link href="/ai-policy" className="hover:underline text-sm mb-2 sm:mb-0">
+                    <Link href="https://functional-van-16a.notion.site/AI-Policy-10c989127eb2809eb29bc9c439af8c92" target="_blank" className="hover:underline text-sm mb-2 sm:mb-0">
                         AI Policy
                     </Link>
-                    <Link href="/privacy" className="hover:underline text-sm mb-2 sm:mb-0">
+                    <Link href="https://functional-van-16a.notion.site/Privacy-Policy-10c989127eb280b29bfaddb67f66b15b" target="_blank" className="hover:underline text-sm mb-2 sm:mb-0">
                         Privacy
                     </Link>
                 </nav>
