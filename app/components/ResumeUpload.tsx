@@ -39,7 +39,7 @@ export default function ResumeUpload() {
           type="file"
           accept={FILE_EXTENSIONS.toString()}
           onChange={handleFileChange}
-          className="border-secondary focus:ring-accent bg-white"
+          className="border-secondary focus:ring-accent"
         />
         {file && <p className="mt-2 font-medium">Selected file: {file.name}</p>}
       </CardContent>

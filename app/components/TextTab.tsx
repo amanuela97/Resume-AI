@@ -29,9 +29,8 @@ export default function TextTab() {
           size="icon"
           onClick={clearDescription}
           aria-label="Clear job description"
-          className={`transition-opacity duration-700 ease-in-out ${
-            jobDescription ? "opacity-100" : "opacity-0"
-          }`}
+          className={`transition-opacity duration-700 ease-in-out ${jobDescription ? "opacity-100" : "opacity-0"
+            }`}
         >
           <FaTrash className="w-4 h-4 text-neutral" /> {/* Use FaTrash icon */}
         </Button>
@@ -42,7 +41,7 @@ export default function TextTab() {
           maxLength={JOB_DESCRIPTION_TEXT_LIMIT}
           onChange={handleDescriptionChange}
           placeholder="Paste the job description here..."
-          className="h-40 mb-2 border-secondary focus:ring-accent bg-white p-2"
+          className="h-40 mb-2 border-secondary focus:ring-accent p-2"
         />
         <span className="text-muted-foreground text-sm">
           {jobDescription.trim().length} / {JOB_DESCRIPTION_TEXT_LIMIT}{" "}
