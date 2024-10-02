@@ -124,7 +124,7 @@ export default function Component() {
                   })
                 }
                 required
-                className="h-32 bg-white"
+                className="h-32 "
               />
               <p className="text-sm text-muted-foreground text-right">
                 {reviewState.review.length}/200 characters

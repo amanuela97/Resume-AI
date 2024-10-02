@@ -65,7 +65,7 @@ const DraggableExperienceItem = ({
           drag(drop(node));
         }
       }}
-      className={` p-4 rounded-md space-y-4 hover:cursor-grab active:cursor-grabbing transition-colors ease-in-out duration-300 ${
+      className={`border border-black dark:border-white p-4 rounded-md space-y-4 hover:cursor-grab active:cursor-grabbing transition-colors ease-in-out duration-300 ${
         isDragging ? "opacity-80 bg-card" : "opacity-100"
       }`}
     >
@@ -309,7 +309,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
                     moveItem(fromIndex, toIndex, "education")
                   }
                 >
-                  <div key={index} className="p-4 border rounded-md space-y-4">
+                  <div key={index} className="p-4  rounded-md space-y-4">
                     <div>
                       <Label htmlFor={`school-${index}`}>
                         School/University Name
@@ -405,10 +405,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
                     moveItem(fromIndex, toIndex, "workExperience")
                   }
                 >
-                  <div
-                    key={index}
-                    className="p-4 border border-black dark:border-white rounded-md space-y-4"
-                  >
+                  <div key={index} className="p-4  rounded-md space-y-4">
                     <div>
                       <Label htmlFor={`jobTitle-${index}`}>Job Title</Label>
                       <Input
@@ -520,7 +517,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
                     moveItem(fromIndex, toIndex, "skills")
                   }
                 >
-                  <div key={index} className="p-4 border rounded-md space-y-4">
+                  <div key={index} className="p-4  rounded-md space-y-4">
                     <div>
                       <Label htmlFor={`skillName-${index}`}>Skill Name</Label>
                       <Input
@@ -597,7 +594,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
                     moveItem(fromIndex, toIndex, "certifications")
                   }
                 >
-                  <div key={index} className="p-4 border rounded-md space-y-4">
+                  <div key={index} className="p-4  rounded-md space-y-4">
                     <div>
                       <Label htmlFor={`certificationName-${index}`}>
                         Certification/Course Name
@@ -669,7 +666,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
                     moveItem(fromIndex, toIndex, "projects")
                   }
                 >
-                  <div key={index} className="p-4 border rounded-md space-y-4">
+                  <div key={index} className="p-4  rounded-md space-y-4">
                     <div>
                       <Label htmlFor={`projectName-${index}`}>
                         Project Name
@@ -756,7 +753,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
                     moveItem(fromIndex, toIndex, "volunteerExperience")
                   }
                 >
-                  <div key={index} className="p-4 border rounded-md space-y-4">
+                  <div key={index} className="p-4  rounded-md space-y-4">
                     <div>
                       <Label htmlFor={`volunteerOrg-${index}`}>
                         Organization Name
@@ -841,7 +838,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
                     moveItem(fromIndex, toIndex, "awards")
                   }
                 >
-                  <div key={index} className="p-4 border rounded-md space-y-4">
+                  <div key={index} className="p-4  rounded-md space-y-4">
                     <div>
                       <Label htmlFor={`awardName-${index}`}>Award Name</Label>
                       <Input
@@ -921,7 +918,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
                     moveItem(fromIndex, toIndex, "references")
                   }
                 >
-                  <div key={index} className="p-4 border rounded-md space-y-4">
+                  <div key={index} className="p-4  rounded-md space-y-4">
                     <div>
                       <Label htmlFor={`refereeName-${index}`}>
                         Referee Name
