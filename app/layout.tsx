@@ -5,11 +5,10 @@ import "react-toastify/dist/ReactToastify.css";
 import Navbar from "@/app/components/Navbar"; // Ensure the correct import path
 import Footer from "@/app/components/Footer";
 
-
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Intelligent AI",
+  title: "Resume AI",
   description: "AI-powered resume Tool for analysis and cover letter creation",
   icons: {
     icon: "/icon.ico",
