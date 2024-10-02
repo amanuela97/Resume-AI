@@ -1,5 +1,5 @@
 // components/DocxPreview.tsx
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { renderAsync } from "docx-preview";
 import html2canvas from "html2canvas";
 import { FileQuestion } from "lucide-react";

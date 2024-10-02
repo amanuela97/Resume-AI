@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState } from "react";
 import { useAppStore } from "@/app/store";
 import { Input } from "@/app/components/ui/input";
@@ -50,14 +51,21 @@ export default function LinkTab() {
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         placeholder="Enter the job description URL"
-        className="mb-4 border-secondary focus:ring-accent bg-white p-2"
+        className="mb-4 border-secondary focus:ring-accent p-2"
       />
       <Button
         onClick={handleExtract}
         disabled={isExtracting}
-        className="bg-accent"
+        className="bg-button-bg hover:bg-button-hover active:bg-button-active dark:bg-button-bg dark:hover:bg-button-hover dark:active:bg-button-active text-button-text"
       >
-        {isExtracting ? "Extracting..." : "Extract"}
+        {isExtracting ? (
+          <>
+            <span className="animate-spin mr-2">&#9696;</span>
+            Extracting...
+          </>
+        ) : (
+          "Extract"
+        )}
       </Button>
     </div>
   );
