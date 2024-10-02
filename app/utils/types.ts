@@ -161,3 +161,9 @@ export type ResumeInfo = {
 };
 
 export type Section = keyof ResumeInfo;
+
+export type Step = {
+  name: string;
+  required: string[];
+  field?: keyof ResumeInfo | undefined;
+};

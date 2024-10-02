@@ -8,7 +8,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Label } from "@/app/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { PlusCircle, Trash2, Upload } from "lucide-react";
-import { Section, ResumeInfo } from "@/app/utils/types";
+import { Section, ResumeInfo, Step } from "@/app/utils/types";
 import { useAppStore } from "../store";
 import { toast } from "react-toastify";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
@@ -17,15 +17,67 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 const steps = [
   { name: "Personal Information", required: ["fullName", "email"] },
   { name: "Career Objective", required: ["careerObjective"] },
-  { name: "Education", required: [] },
-  { name: "Work Experience", required: [] },
-  { name: "Skills", required: [] },
-  { name: "Certifications & Courses", required: [] },
-  { name: "Projects", required: [] },
-  { name: "Volunteer Experience", required: [] },
-  { name: "Awards & Honors", required: [] },
+  {
+    field: "education",
+    name: "Education",
+    required: ["school", "degree", "fieldOfStudy", "graduationDate", "honors"],
+  },
+  {
+    field: "workExperience",
+    name: "Work Experience",
+    required: [
+      "jobTitle",
+      "companyName",
+      "employmentDates",
+      "responsibilities",
+      "achievements",
+      "location",
+    ],
+  },
+  { field: "skills", name: "Skills", required: ["skillName", "skillLevel"] },
+  {
+    field: "certifications",
+    name: "Certifications & Courses",
+    required: [
+      "certificationName",
+      "certificationDate",
+      "certificationAuthority",
+    ],
+  },
+  {
+    name: "Projects",
+    required: [
+      "projectName",
+      "projectDescription",
+      "projectDates",
+      "projectRole",
+      "projectAchievements",
+    ],
+  },
+  {
+    field: "volunteerExperience",
+    name: "Volunteer Experience",
+    required: [
+      "volunteerOrganization",
+      "volunteerDates",
+      "volunteerAchievements",
+    ],
+  },
+  {
+    field: "awards",
+    name: "Awards & Honors",
+    required: ["awardName", "awardDate", "awardAuthority"],
+  },
   { name: "Interests/Hobbies", required: [] },
-  { name: "References", required: [] },
+  {
+    name: "References",
+    required: [
+      "referenceName",
+      "referencePosition",
+      "referenceCompany",
+      "referenceEmail",
+    ],
+  },
 ];
 
 type DraggableExperienceItemProps = {
@@ -149,24 +201,44 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
     }
   };
 
-  const isStepComplete = (step: { name?: string; required: any }) => {
-    return step.required.every((field: Section) => {
-      if (Array.isArray(resumeInfo[field])) {
-        return resumeInfo[field].every((item) => item.trim() !== "");
-      }
+  const isStepComplete = (step: Step) => {
+    // If the step is related to a specific field (like arrays)
+    if (step.field && Array.isArray(resumeInfo[step.field])) {
+      const fieldArray = resumeInfo[step.field] as any[]; // Casting since TypeScript won't infer correctly here
+      // Ensure array is not empty, and every item in the array has all required fields filled
       return (
-        typeof resumeInfo[field] === "string" && resumeInfo[field].trim() !== ""
+        fieldArray.length === 0 ||
+        fieldArray.every((item) => {
+          return step.required.every((fieldName) => {
+            // Check that each required field in the item is non-empty
+            return typeof item[fieldName] === "string"
+              ? item[fieldName].trim() !== ""
+              : item[fieldName] !== null && item[fieldName] !== undefined;
+          });
+        })
       );
+    }
+    // For string or file type fields
+    return step.required.every((fieldName: string) => {
+      const value = resumeInfo[fieldName as keyof ResumeInfo];
+      if (typeof value === "string") {
+        return value.trim() !== "";
+      } else if (value instanceof File) {
+        return value !== null;
+      }
+      return true;
     });
   };
 
   const canProceed = () => {
-    return isStepComplete(steps[currentStep]);
+    const currentStepInfo = steps[currentStep] as Step;
+    return isStepComplete(currentStepInfo);
   };
 
   const canSkipStep = () => {
-    const requiredSteps = steps.filter((step) => step.required.length > 0);
-    return requiredSteps.every((step) => isStepComplete(step));
+    return steps.every((step) => {
+      return isStepComplete(step as Step);
+    });
   };
 
   const handleOnSubmit = async () => {
@@ -1017,13 +1089,16 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
               <Button
                 key={index}
                 className={`mb-2 ${
-                  isStepComplete(step) ? "bg-card-foreground hover:bg-card" : ""
+                  isStepComplete(step as Step)
+                    ? "bg-card-foreground hover:bg-card"
+                    : ""
                 } ${
                   index === currentStep
                     ? "text-white bg-green-500 hover:bg-green-800"
                     : ""
                 }`}
                 onClick={() => canSkipStep() && setCurrentStep(index)}
+                disabled={!canSkipStep() && index !== currentStep}
               >
                 {index + 1}. {step.name}
               </Button>
