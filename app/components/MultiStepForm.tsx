@@ -11,7 +11,6 @@ import { PlusCircle, Trash2, Upload } from "lucide-react";
 import { Section, ResumeInfo } from "@/app/utils/types";
 import { useAppStore } from "../store";
 import { toast } from "react-toastify";
-import { convertToFormData } from "../utils/helper";
 
 const steps = [
   { name: "Personal Information", required: ["fullName", "email"] },
