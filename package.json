@@ -45,7 +45,7 @@
     "lucide-react": "0.441.0",
     "moment": "2.30.1",
     "next": "14.2.11",
-    "next-themes": "^0.3.0",
+    "next-themes": "0.3.0",
     "node-fetch": "3.3.2",
     "officeparser": "4.1.1",
     "openai": "4.61.0",

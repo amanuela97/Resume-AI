@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "@/app/components/Navbar"; // Ensure the correct import path
 import Footer from "@/app/components/Footer";
+import ThemeProvider from "@/app/components/ThemeProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,12 +22,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <Navbar />
-        {children}
-        <ToastContainer />
-        <Footer />
+        <ThemeProvider>
+          <>
+            <Navbar />
+            {children}
+            <ToastContainer />
+            <Footer />
+          </>
+        </ThemeProvider>
       </body>
     </html>
   );

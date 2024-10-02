@@ -11,6 +11,7 @@ import {
 } from "./utils/types";
 
 interface AppState {
+  theme: "light" | "dark";
   hasHydrated: boolean;
   file: File | null;
   jobDescription: string;
@@ -40,11 +41,13 @@ interface AppState {
   setHasHydrated: (hydrated: boolean) => void;
   setTemplates: (templates: TemplateMetada[]) => void;
   setReviews: (reviews: Review[]) => void;
+  setTheme: (theme: "light" | "dark") => void;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
+      theme: "light",
       hasHydrated: false,
       file: null,
       jobDescription: "",
@@ -102,10 +105,12 @@ export const useAppStore = create<AppState>()(
       setHasHydrated: (hydrated: boolean) => set({ hasHydrated: hydrated }), // Setter for the hydration flag
       setTemplates: (templates: TemplateMetada[]) => set({ templates }), // Added setter for templates
       setReviews: (reviews: Review[]) => set({ reviews }), // Added setter for reviews
+      setTheme: (theme: "light" | "dark") => set({ theme }),
     }),
     {
       name: "app-storage", // Unique key for localStorage
       partialize: (state) => ({
+        theme: state?.theme,
         user: state?.user,
         templates: state?.templates,
         analyses: state?.analyses,
