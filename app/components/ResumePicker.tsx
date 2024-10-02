@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import ImageNext from "next/image";
 import { Search, Plus, Check, Download } from "lucide-react";
 import { Input } from "@/app/components/ui/input";
 import {
@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import { colorOptions } from "../utils/constants";
 import { TemplateMetada } from "../utils/types";
 import { fetchTemplateMetadata } from "../utils/firebase";
+import SkeletonLoader from "@/app/components/SkeletonLoader";
 
 export default function ResumePicker() {
   const [selectedTemplate, setSelectedTemplate] =
@@ -37,6 +38,7 @@ export default function ResumePicker() {
   const [selectedColor, setSelectedColor] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [docBuffer, setDocBuffer] = useState<ArrayBuffer | null>(null);
+  const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
   const { resumeInfo, templates, setTemplates, hasHydrated } = useAppStore();
 
   const filteredTemplates = templates.filter((template) => {
@@ -59,6 +61,19 @@ export default function ResumePicker() {
 
     handleFetchTemplates();
   }, [templates, setTemplates, hasHydrated]);
+
+  useEffect(() => {
+    const loadImage = (template: TemplateMetada) => {
+      const img = new Image();
+      img.src = template.previewImageURL;
+      img.alt = template.name;
+      img.onload = () => {
+        setImagesLoaded((prev) => ({ ...prev, [template.id]: true }));
+      };
+    };
+
+    filteredTemplates.forEach(loadImage);
+  }, []);
 
   const handleSelection = async (template: TemplateMetada) => {
     setSelectedTemplate(template);
@@ -160,14 +175,17 @@ export default function ResumePicker() {
                         }`}
                         onClick={() => handleSelection(template)}
                       >
-                        <Image
-                          src={template.previewImageURL}
-                          alt={template.name}
-                          width={300}
-                          height={0}
-                          layout="responsive" // Maintains aspect ratio and makes height auto
-                          objectFit="contain" // Ensures the image fits within the container
-                        />
+                        {imagesLoaded[template.id] ? (
+                          <ImageNext
+                            src={template.previewImageURL}
+                            alt={template.name}
+                            width={300}
+                            height={420}
+                            className="object-cover" // Ensures the image fits within the container
+                          />
+                        ) : (
+                          <SkeletonLoader />
+                        )}
                       </div>
                     </TooltipTrigger>
                     <TooltipContent className="bg-card">

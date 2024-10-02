@@ -8,15 +8,16 @@
   --background-end-rgb: 255, 255, 255;
   --scrollbar: #d9caba;
   --transition-speed: 0.3s;
-
 }
 
 html {
-  transition: background-color var(--transition-speed), color var(--transition-speed);
+  transition: background-color var(--transition-speed),
+    color var(--transition-speed);
 }
 
 body {
-  transition: background-color var(--transition-speed), color var(--transition-speed);
+  transition: background-color var(--transition-speed),
+    color var(--transition-speed);
 }
 
 @layer base {
@@ -96,7 +97,6 @@ body {
     --button-background: 132 83% 28%;
     --button-hover: 221 83% 63%;
     --button-active: 221 83% 40%;
-
   }
 }
 

@@ -1,2 +1,0 @@
-- save the state of the ReactQuill editor in to the global store defined in store.ts file when the user makes changes.
-- when the user clicks the save cover letter button, save it to firestore under "coverLetters" collections including the userId, title, and id of the coverLetter

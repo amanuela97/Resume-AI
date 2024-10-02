@@ -26,10 +26,17 @@ const DocxPreview = ({ docBuffer, templateName }: DocxPreviewProps) => {
         // Render the docx file into the previewRef element
         await renderAsync(docBuffer, previewRef.current);
 
-        const canvas = await html2canvas(previewRef.current, { useCORS: true });
+        const canvas = await html2canvas(previewRef.current, {
+          useCORS: true,
+          logging: false,
+        });
         previewRef.current.style.position = "";
         previewRef.current.style.display = "none";
+
+        const originalConsoleLog = console.log;
+        console.log = function () {};
         const imageUrl = canvas.toDataURL("image/png");
+        console.log = originalConsoleLog;
 
         setThumbnailUrl(imageUrl);
 

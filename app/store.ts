@@ -6,10 +6,12 @@ import {
   CoverLetter,
   CustomUser,
   ResumeInfo,
+  Review,
   TemplateMetada,
 } from "./utils/types";
 
 interface AppState {
+  theme: "light" | "dark";
   hasHydrated: boolean;
   file: File | null;
   jobDescription: string;
@@ -17,6 +19,7 @@ interface AppState {
   analyses: Analyses; // Add analyses state
   coverLetter: CoverLetter | null;
   coverLetters: CoverLetter[];
+  reviews: Review[];
   templates: TemplateMetada[];
   resumeInfo: ResumeInfo; // New state for resume information
   isLoading: boolean;
@@ -37,11 +40,14 @@ interface AppState {
   logoutUser: () => void;
   setHasHydrated: (hydrated: boolean) => void;
   setTemplates: (templates: TemplateMetada[]) => void;
+  setReviews: (reviews: Review[]) => void;
+  setTheme: (theme: "light" | "dark") => void;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
+      theme: "light",
       hasHydrated: false,
       file: null,
       jobDescription: "",
@@ -49,6 +55,7 @@ export const useAppStore = create<AppState>()(
       analyses: [], // Initialize analyses as an empty array
       coverLetter: null,
       coverLetters: [],
+      reviews: [],
       resumeInfo: {
         profileImage: null,
         fullName: "",
@@ -97,14 +104,18 @@ export const useAppStore = create<AppState>()(
       setResumeInfo: (resumeInfo: ResumeInfo) => set({ resumeInfo }), // New setter
       setHasHydrated: (hydrated: boolean) => set({ hasHydrated: hydrated }), // Setter for the hydration flag
       setTemplates: (templates: TemplateMetada[]) => set({ templates }), // Added setter for templates
+      setReviews: (reviews: Review[]) => set({ reviews }), // Added setter for reviews
+      setTheme: (theme: "light" | "dark") => set({ theme }),
     }),
     {
       name: "app-storage", // Unique key for localStorage
       partialize: (state) => ({
+        theme: state?.theme,
         user: state?.user,
         templates: state?.templates,
         analyses: state?.analyses,
         coverLetters: state?.coverLetters,
+        reviews: state?.reviews,
       }), // Only persist the user state
       onRehydrateStorage: () => (state) => {
         if (state) {

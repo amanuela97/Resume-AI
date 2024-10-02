@@ -8,24 +8,123 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Label } from "@/app/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { PlusCircle, Trash2, Upload } from "lucide-react";
-import { Section, ResumeInfo } from "@/app/utils/types";
+import { Section, ResumeInfo, Step } from "@/app/utils/types";
 import { useAppStore } from "../store";
 import { toast } from "react-toastify";
-import { convertToFormData } from "../utils/helper";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 const steps = [
   { name: "Personal Information", required: ["fullName", "email"] },
   { name: "Career Objective", required: ["careerObjective"] },
-  { name: "Education", required: [] },
-  { name: "Work Experience", required: [] },
-  { name: "Skills", required: [] },
-  { name: "Certifications & Courses", required: [] },
-  { name: "Projects", required: [] },
-  { name: "Volunteer Experience", required: [] },
-  { name: "Awards & Honors", required: [] },
+  {
+    field: "education",
+    name: "Education",
+    required: ["school", "degree", "fieldOfStudy", "graduationDate", "honors"],
+  },
+  {
+    field: "workExperience",
+    name: "Work Experience",
+    required: [
+      "jobTitle",
+      "companyName",
+      "employmentDates",
+      "responsibilities",
+      "achievements",
+      "location",
+    ],
+  },
+  { field: "skills", name: "Skills", required: ["skillName", "skillLevel"] },
+  {
+    field: "certifications",
+    name: "Certifications & Courses",
+    required: [
+      "certificationName",
+      "certificationDate",
+      "certificationAuthority",
+    ],
+  },
+  {
+    name: "Projects",
+    required: [
+      "projectName",
+      "projectDescription",
+      "projectDates",
+      "projectRole",
+      "projectAchievements",
+    ],
+  },
+  {
+    field: "volunteerExperience",
+    name: "Volunteer Experience",
+    required: [
+      "volunteerOrganization",
+      "volunteerDates",
+      "volunteerAchievements",
+    ],
+  },
+  {
+    field: "awards",
+    name: "Awards & Honors",
+    required: ["awardName", "awardDate", "awardAuthority"],
+  },
   { name: "Interests/Hobbies", required: [] },
-  { name: "References", required: [] },
+  {
+    name: "References",
+    required: [
+      "referenceName",
+      "referencePosition",
+      "referenceCompany",
+      "referenceEmail",
+    ],
+  },
 ];
+
+type DraggableExperienceItemProps = {
+  index: number;
+  moveItem: (fromIndex: number, toIndex: number, section: Section) => void;
+  children: React.ReactNode;
+};
+
+// Add this new component for draggable items
+const DraggableExperienceItem = ({
+  index,
+  moveItem,
+  children,
+}: DraggableExperienceItemProps) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: "experience",
+    item: { index },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const [, drop] = useDrop({
+    accept: "experience",
+    hover(item: { index: number }) {
+      if (item.index !== index) {
+        moveItem(item.index, index, "workExperience");
+        item.index = index;
+      }
+    },
+  });
+
+  return (
+    <div
+      ref={(node) => {
+        if (node) {
+          drag(drop(node));
+        }
+      }}
+      className={`border border-black dark:border-white p-4 rounded-md space-y-4 hover:cursor-grab active:cursor-grabbing transition-colors ease-in-out duration-300 ${
+        isDragging ? "opacity-80 bg-card" : "opacity-100"
+      }`}
+    >
+      {children}
+    </div>
+  );
+};
 
 export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -90,7 +189,6 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
   };
 
   const removeItem = (section: Section, index: number) => {
-    console.log(section, index);
     if (Array.isArray(resumeInfo[section])) {
       setResumeInfo({
         ...resumeInfo,
@@ -103,24 +201,44 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
     }
   };
 
-  const isStepComplete = (step: { name?: string; required: any }) => {
-    return step.required.every((field: Section) => {
-      if (Array.isArray(resumeInfo[field])) {
-        return resumeInfo[field].every((item) => item.trim() !== "");
-      }
+  const isStepComplete = (step: Step) => {
+    // If the step is related to a specific field (like arrays)
+    if (step.field && Array.isArray(resumeInfo[step.field])) {
+      const fieldArray = resumeInfo[step.field] as any[]; // Casting since TypeScript won't infer correctly here
+      // Ensure array is not empty, and every item in the array has all required fields filled
       return (
-        typeof resumeInfo[field] === "string" && resumeInfo[field].trim() !== ""
+        fieldArray.length === 0 ||
+        fieldArray.every((item) => {
+          return step.required.every((fieldName) => {
+            // Check that each required field in the item is non-empty
+            return typeof item[fieldName] === "string"
+              ? item[fieldName].trim() !== ""
+              : item[fieldName] !== null && item[fieldName] !== undefined;
+          });
+        })
       );
+    }
+    // For string or file type fields
+    return step.required.every((fieldName: string) => {
+      const value = resumeInfo[fieldName as keyof ResumeInfo];
+      if (typeof value === "string") {
+        return value.trim() !== "";
+      } else if (value instanceof File) {
+        return value !== null;
+      }
+      return true;
     });
   };
 
   const canProceed = () => {
-    return isStepComplete(steps[currentStep]);
+    const currentStepInfo = steps[currentStep] as Step;
+    return isStepComplete(currentStepInfo);
   };
 
   const canSkipStep = () => {
-    const requiredSteps = steps.filter((step) => step.required.length > 0);
-    return requiredSteps.every((step) => isStepComplete(step));
+    return steps.every((step) => {
+      return isStepComplete(step as Step);
+    });
   };
 
   const handleOnSubmit = async () => {
@@ -145,6 +263,15 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
   const clearStoredData = () => {
     localStorage.removeItem("resumeInfo");
     setShowButtons(false);
+  };
+
+  const moveItem = (fromIndex: number, toIndex: number, section: Section) => {
+    const newItems = Array.isArray(resumeInfo[section])
+      ? [...resumeInfo[section]]
+      : [];
+    const [movedItem] = newItems.splice(fromIndex, 1);
+    newItems.splice(toIndex, 0, movedItem);
+    setResumeInfo({ ...resumeInfo, [section]: newItems } as ResumeInfo);
   };
 
   const renderStep = () => {
@@ -244,491 +371,598 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
         );
       case 2:
         return (
-          <div className="space-y-4">
-            {resumeInfo.education.map((edu, index) => (
-              <div key={index} className="p-4 border rounded-md space-y-4">
-                <div>
-                  <Label htmlFor={`school-${index}`}>
-                    School/University Name
-                  </Label>
-                  <Input
-                    id={`school-${index}`}
-                    name="school"
-                    onChange={(e) => handleInputChange(e, index, "education")}
-                    value={edu.school || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`degree-${index}`}>Degree</Label>
-                  <Input
-                    id={`degree-${index}`}
-                    name="degree"
-                    onChange={(e) => handleInputChange(e, index, "education")}
-                    value={edu.degree || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`fieldOfStudy-${index}`}>
-                    Field of Study
-                  </Label>
-                  <Input
-                    id={`fieldOfStudy-${index}`}
-                    name="fieldOfStudy"
-                    onChange={(e) => handleInputChange(e, index, "education")}
-                    value={edu.fieldOfStudy || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`graduationDate-${index}`}>
-                    Graduation Date
-                  </Label>
-                  <Input
-                    id={`graduationDate-${index}`}
-                    name="graduationDate"
-                    type="date"
-                    onChange={(e) => handleInputChange(e, index, "education")}
-                    value={edu.graduationDate || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`honors-${index}`}>Honors, Awards</Label>
-                  <Input
-                    id={`honors-${index}`}
-                    name="honors"
-                    onChange={(e) => handleInputChange(e, index, "education")}
-                    value={edu.honors || ""}
-                  />
-                </div>
-                <Button
-                  className="bg-red-500"
-                  size="sm"
-                  onClick={() => removeItem("education", index)}
+          <DndProvider backend={HTML5Backend}>
+            <div className="space-y-4">
+              {resumeInfo.education.map((edu, index) => (
+                <DraggableExperienceItem
+                  key={index}
+                  index={index}
+                  moveItem={(fromIndex, toIndex) =>
+                    moveItem(fromIndex, toIndex, "education")
+                  }
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Remove Education
-                </Button>
-              </div>
-            ))}
-            <Button
-              className="bg-green-500"
-              onClick={() => addItem("education")}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Education
-            </Button>
-          </div>
+                  <div key={index} className="p-4  rounded-md space-y-4">
+                    <div>
+                      <Label htmlFor={`school-${index}`}>
+                        School/University Name
+                      </Label>
+                      <Input
+                        id={`school-${index}`}
+                        name="school"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "education")
+                        }
+                        value={edu.school || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`degree-${index}`}>Degree</Label>
+                      <Input
+                        id={`degree-${index}`}
+                        name="degree"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "education")
+                        }
+                        value={edu.degree || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`fieldOfStudy-${index}`}>
+                        Field of Study
+                      </Label>
+                      <Input
+                        id={`fieldOfStudy-${index}`}
+                        name="fieldOfStudy"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "education")
+                        }
+                        value={edu.fieldOfStudy || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`graduationDate-${index}`}>
+                        Graduation Date
+                      </Label>
+                      <Input
+                        id={`graduationDate-${index}`}
+                        name="graduationDate"
+                        type="date"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "education")
+                        }
+                        value={edu.graduationDate || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`honors-${index}`}>Honors, Awards</Label>
+                      <Input
+                        id={`honors-${index}`}
+                        name="honors"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "education")
+                        }
+                        value={edu.honors || ""}
+                      />
+                    </div>
+                    <Button
+                      className="bg-red-500"
+                      size="sm"
+                      onClick={() => removeItem("education", index)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Education
+                    </Button>
+                  </div>
+                </DraggableExperienceItem>
+              ))}
+              <Button
+                className="bg-green-500"
+                onClick={() => addItem("education")}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Education
+              </Button>
+            </div>
+          </DndProvider>
         );
       case 3:
         return (
-          <div className="space-y-4">
-            {resumeInfo.workExperience.map((exp, index) => (
-              <div key={index} className="p-4 border rounded-md space-y-4">
-                <div>
-                  <Label htmlFor={`jobTitle-${index}`}>Job Title</Label>
-                  <Input
-                    id={`jobTitle-${index}`}
-                    name="jobTitle"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "workExperience")
-                    }
-                    value={exp.jobTitle || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`companyName-${index}`}>Company Name</Label>
-                  <Input
-                    id={`companyName-${index}`}
-                    name="companyName"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "workExperience")
-                    }
-                    value={exp.companyName || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`employmentDates-${index}`}>
-                    Employment Dates
-                  </Label>
-                  <Input
-                    id={`employmentDates-${index}`}
-                    name="employmentDates"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "workExperience")
-                    }
-                    value={exp.employmentDates || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`responsibilities-${index}`}>
-                    Key Responsibilities
-                  </Label>
-                  <Textarea
-                    id={`responsibilities-${index}`}
-                    name="responsibilities"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "workExperience")
-                    }
-                    value={exp.responsibilities || ""}
-                    className="h-24"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`achievements-${index}`}>
-                    Achievements/Impact
-                  </Label>
-                  <Textarea
-                    id={`achievements-${index}`}
-                    name="achievements"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "workExperience")
-                    }
-                    value={exp.achievements || ""}
-                    className="h-24"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`location-${index}`}>
-                    Location (optional)
-                  </Label>
-                  <Input
-                    id={`location-${index}`}
-                    name="location"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "workExperience")
-                    }
-                    value={exp.location || ""}
-                  />
-                </div>
-                <Button
-                  className="bg-red-500"
-                  size="sm"
-                  onClick={() => removeItem("workExperience", index)}
+          <DndProvider backend={HTML5Backend}>
+            <div className="space-y-4">
+              {resumeInfo.workExperience.map((exp, index) => (
+                <DraggableExperienceItem
+                  key={index}
+                  index={index}
+                  moveItem={(fromIndex, toIndex) =>
+                    moveItem(fromIndex, toIndex, "workExperience")
+                  }
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Remove Experience
-                </Button>
-              </div>
-            ))}
-            <Button
-              className="bg-green-500"
-              onClick={() => addItem("workExperience")}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Work Experience
-            </Button>
-          </div>
+                  <div key={index} className="p-4  rounded-md space-y-4">
+                    <div>
+                      <Label htmlFor={`jobTitle-${index}`}>Job Title</Label>
+                      <Input
+                        id={`jobTitle-${index}`}
+                        name="jobTitle"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "workExperience")
+                        }
+                        value={exp.jobTitle || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`companyName-${index}`}>
+                        Company Name
+                      </Label>
+                      <Input
+                        id={`companyName-${index}`}
+                        name="companyName"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "workExperience")
+                        }
+                        value={exp.companyName || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`employmentDates-${index}`}>
+                        Employment Dates
+                      </Label>
+                      <Input
+                        id={`employmentDates-${index}`}
+                        name="employmentDates"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "workExperience")
+                        }
+                        value={exp.employmentDates || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`responsibilities-${index}`}>
+                        Key Responsibilities
+                      </Label>
+                      <Textarea
+                        id={`responsibilities-${index}`}
+                        name="responsibilities"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "workExperience")
+                        }
+                        value={exp.responsibilities || ""}
+                        className="h-24"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`achievements-${index}`}>
+                        Achievements/Impact
+                      </Label>
+                      <Textarea
+                        id={`achievements-${index}`}
+                        name="achievements"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "workExperience")
+                        }
+                        value={exp.achievements || ""}
+                        className="h-24"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`location-${index}`}>
+                        Location (optional)
+                      </Label>
+                      <Input
+                        id={`location-${index}`}
+                        name="location"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "workExperience")
+                        }
+                        value={exp.location || ""}
+                      />
+                    </div>
+                    <Button
+                      className="bg-red-500"
+                      size="sm"
+                      onClick={() => removeItem("workExperience", index)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Experience
+                    </Button>
+                  </div>
+                </DraggableExperienceItem>
+              ))}
+              <Button
+                className="bg-green-500"
+                onClick={() => addItem("workExperience")}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Work Experience
+              </Button>
+            </div>
+          </DndProvider>
         );
       case 4:
         return (
-          <div className="space-y-4">
-            {resumeInfo.skills.map((skill, index) => (
-              <div key={index} className="p-4 border rounded-md space-y-4">
-                <div>
-                  <Label htmlFor={`skillName-${index}`}>Skill Name</Label>
-                  <Input
-                    id={`skillName-${index}`}
-                    name="skillName"
-                    onChange={(e) => handleInputChange(e, index, "skills")}
-                    value={skill.skillName || ""}
-                  />
-                </div>
-                <div>
-                  <Label>Skill Level</Label>
-                  <RadioGroup
-                    onValueChange={(value) =>
-                      handleInputChange(
-                        {
-                          target: {
-                            name: "skillLevel",
-                            value: value.toString(),
-                          },
-                        } as ChangeEvent<HTMLInputElement>,
-                        index,
-                        "skills"
-                      )
-                    }
-                    value={skill.skillLevel || ""}
-                    className="flex space-x-2"
-                  >
-                    {[1, 2, 3, 4, 5].map((level) => (
-                      <div key={level} className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value={level.toString()}
-                          id={`level-${index}-${level}`}
-                        />
-                        <Label htmlFor={`level-${index}-${level}`}>
-                          {level}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-                <Button
-                  className="bg-red-500"
-                  size="sm"
-                  onClick={() => removeItem("skills", index)}
+          <DndProvider backend={HTML5Backend}>
+            <div className="space-y-4">
+              {resumeInfo.skills.map((skill, index) => (
+                <DraggableExperienceItem
+                  key={index}
+                  index={index}
+                  moveItem={(fromIndex, toIndex) =>
+                    moveItem(fromIndex, toIndex, "skills")
+                  }
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Remove Skill
-                </Button>
-              </div>
-            ))}
-            <Button className="bg-green-500" onClick={() => addItem("skills")}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Skill
-            </Button>
-          </div>
+                  <div key={index} className="p-4  rounded-md space-y-4">
+                    <div>
+                      <Label htmlFor={`skillName-${index}`}>Skill Name</Label>
+                      <Input
+                        id={`skillName-${index}`}
+                        name="skillName"
+                        onChange={(e) => handleInputChange(e, index, "skills")}
+                        value={skill.skillName || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label>Skill Level</Label>
+                      <RadioGroup
+                        onValueChange={(value) =>
+                          handleInputChange(
+                            {
+                              target: {
+                                name: "skillLevel",
+                                value: value.toString(),
+                              },
+                            } as ChangeEvent<HTMLInputElement>,
+                            index,
+                            "skills"
+                          )
+                        }
+                        value={skill.skillLevel || ""}
+                        className="flex space-x-2"
+                      >
+                        {[1, 2, 3, 4, 5].map((level) => (
+                          <div
+                            key={level}
+                            className="flex items-center space-x-2"
+                          >
+                            <RadioGroupItem
+                              value={level.toString()}
+                              id={`level-${index}-${level}`}
+                            />
+                            <Label htmlFor={`level-${index}-${level}`}>
+                              {level}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                    <Button
+                      className="bg-red-500"
+                      size="sm"
+                      onClick={() => removeItem("skills", index)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Skill
+                    </Button>
+                  </div>
+                </DraggableExperienceItem>
+              ))}
+              <Button
+                className="bg-green-500"
+                onClick={() => addItem("skills")}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Skill
+              </Button>
+            </div>
+          </DndProvider>
         );
       case 5:
         return (
-          <div className="space-y-4">
-            {resumeInfo.certifications.map((cert, index) => (
-              <div key={index} className="p-4 border rounded-md space-y-4">
-                <div>
-                  <Label htmlFor={`certificationName-${index}`}>
-                    Certification/Course Name
-                  </Label>
-                  <Input
-                    id={`certificationName-${index}`}
-                    name="certificationName"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "certifications")
-                    }
-                    value={cert.certificationName || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`issuingOrganization-${index}`}>
-                    Issuing Organization
-                  </Label>
-                  <Input
-                    id={`issuingOrganization-${index}`}
-                    name="issuingOrganization"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "certifications")
-                    }
-                    value={cert.issuingOrganization || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`dateEarned-${index}`}>Date Earned</Label>
-                  <Input
-                    id={`dateEarned-${index}`}
-                    name="dateEarned"
-                    type="date"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "certifications")
-                    }
-                    value={cert.dateEarned || ""}
-                  />
-                </div>
-                <Button
-                  className="bg-red-500"
-                  size="sm"
-                  onClick={() => removeItem("certifications", index)}
+          <DndProvider backend={HTML5Backend}>
+            <div className="space-y-4">
+              {resumeInfo.certifications.map((cert, index) => (
+                <DraggableExperienceItem
+                  key={index}
+                  index={index}
+                  moveItem={(fromIndex, toIndex) =>
+                    moveItem(fromIndex, toIndex, "certifications")
+                  }
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Remove Certification
-                </Button>
-              </div>
-            ))}
-            <Button
-              className="bg-green-500"
-              onClick={() => addItem("certifications")}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Certification
-            </Button>
-          </div>
+                  <div key={index} className="p-4  rounded-md space-y-4">
+                    <div>
+                      <Label htmlFor={`certificationName-${index}`}>
+                        Certification/Course Name
+                      </Label>
+                      <Input
+                        id={`certificationName-${index}`}
+                        name="certificationName"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "certifications")
+                        }
+                        value={cert.certificationName || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`issuingOrganization-${index}`}>
+                        Issuing Organization
+                      </Label>
+                      <Input
+                        id={`issuingOrganization-${index}`}
+                        name="issuingOrganization"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "certifications")
+                        }
+                        value={cert.issuingOrganization || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`dateEarned-${index}`}>Date Earned</Label>
+                      <Input
+                        id={`dateEarned-${index}`}
+                        name="dateEarned"
+                        type="date"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "certifications")
+                        }
+                        value={cert.dateEarned || ""}
+                      />
+                    </div>
+                    <Button
+                      className="bg-red-500"
+                      size="sm"
+                      onClick={() => removeItem("certifications", index)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Certification
+                    </Button>
+                  </div>
+                </DraggableExperienceItem>
+              ))}
+              <Button
+                className="bg-green-500"
+                onClick={() => addItem("certifications")}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Certification
+              </Button>
+            </div>
+          </DndProvider>
         );
       case 6:
         return (
-          <div className="space-y-4">
-            {resumeInfo.projects.map((project, index) => (
-              <div key={index} className="p-4 border rounded-md space-y-4">
-                <div>
-                  <Label htmlFor={`projectName-${index}`}>Project Name</Label>
-                  <Input
-                    id={`projectName-${index}`}
-                    name="projectName"
-                    onChange={(e) => handleInputChange(e, index, "projects")}
-                    value={project.projectName || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`projectDescription-${index}`}>
-                    Description
-                  </Label>
-                  <Textarea
-                    id={`projectDescription-${index}`}
-                    name="projectDescription"
-                    onChange={(e) => handleInputChange(e, index, "projects")}
-                    value={project.projectDescription || ""}
-                    className="h-24"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`keyTechnologies-${index}`}>
-                    Key Technologies Used
-                  </Label>
-                  <Input
-                    id={`keyTechnologies-${index}`}
-                    name="keyTechnologies"
-                    onChange={(e) => handleInputChange(e, index, "projects")}
-                    value={project.keyTechnologies || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`projectDuration-${index}`}>Duration</Label>
-                  <Input
-                    id={`projectDuration-${index}`}
-                    name="projectDuration"
-                    onChange={(e) => handleInputChange(e, index, "projects")}
-                    value={project.projectDuration || ""}
-                  />
-                </div>
-                <Button
-                  className="bg-red-500"
-                  size="sm"
-                  onClick={() => removeItem("projects", index)}
+          <DndProvider backend={HTML5Backend}>
+            <div className="space-y-4">
+              {resumeInfo.projects.map((project, index) => (
+                <DraggableExperienceItem
+                  key={index}
+                  index={index}
+                  moveItem={(fromIndex, toIndex) =>
+                    moveItem(fromIndex, toIndex, "projects")
+                  }
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Remove Project
-                </Button>
-              </div>
-            ))}
-            <Button
-              className="bg-green-500"
-              onClick={() => addItem("projects")}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Project
-            </Button>
-          </div>
+                  <div key={index} className="p-4  rounded-md space-y-4">
+                    <div>
+                      <Label htmlFor={`projectName-${index}`}>
+                        Project Name
+                      </Label>
+                      <Input
+                        id={`projectName-${index}`}
+                        name="projectName"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "projects")
+                        }
+                        value={project.projectName || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`projectDescription-${index}`}>
+                        Description
+                      </Label>
+                      <Textarea
+                        id={`projectDescription-${index}`}
+                        name="projectDescription"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "projects")
+                        }
+                        value={project.projectDescription || ""}
+                        className="h-24"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`keyTechnologies-${index}`}>
+                        Key Technologies Used
+                      </Label>
+                      <Input
+                        id={`keyTechnologies-${index}`}
+                        name="keyTechnologies"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "projects")
+                        }
+                        value={project.keyTechnologies || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`projectDuration-${index}`}>
+                        Duration
+                      </Label>
+                      <Input
+                        id={`projectDuration-${index}`}
+                        name="projectDuration"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "projects")
+                        }
+                        value={project.projectDuration || ""}
+                      />
+                    </div>
+                    <Button
+                      className="bg-red-500"
+                      size="sm"
+                      onClick={() => removeItem("projects", index)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Project
+                    </Button>
+                  </div>
+                </DraggableExperienceItem>
+              ))}
+              <Button
+                className="bg-green-500"
+                onClick={() => addItem("projects")}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Project
+              </Button>
+            </div>
+          </DndProvider>
         );
       case 7:
         return (
-          <div className="space-y-4">
-            {resumeInfo.volunteerExperience.map((exp, index) => (
-              <div key={index} className="p-4 border rounded-md space-y-4">
-                <div>
-                  <Label htmlFor={`volunteerOrg-${index}`}>
-                    Organization Name
-                  </Label>
-                  <Input
-                    id={`volunteerOrg-${index}`}
-                    name="volunteerOrg"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "volunteerExperience")
-                    }
-                    value={exp.volunteerOrg || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`volunteerRole-${index}`}>Role</Label>
-                  <Input
-                    id={`volunteerRole-${index}`}
-                    name="volunteerRole"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "volunteerExperience")
-                    }
-                    value={exp.volunteerRole || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`volunteerDuration-${index}`}>Duration</Label>
-                  <Input
-                    id={`volunteerDuration-${index}`}
-                    name="volunteerDuration"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "volunteerExperience")
-                    }
-                    value={exp.volunteerDuration || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`volunteerResponsibilities-${index}`}>
-                    Responsibilities
-                  </Label>
-                  <Textarea
-                    id={`volunteerResponsibilities-${index}`}
-                    name="volunteerResponsibilities"
-                    onChange={(e) =>
-                      handleInputChange(e, index, "volunteerExperience")
-                    }
-                    value={exp.volunteerResponsibilities || ""}
-                    className="h-24"
-                  />
-                </div>
-                <Button
-                  className="bg-red-500"
-                  size="sm"
-                  onClick={() => removeItem("volunteerExperience", index)}
+          <DndProvider backend={HTML5Backend}>
+            <div className="space-y-4">
+              {resumeInfo.volunteerExperience.map((exp, index) => (
+                <DraggableExperienceItem
+                  key={index}
+                  index={index}
+                  moveItem={(fromIndex, toIndex) =>
+                    moveItem(fromIndex, toIndex, "volunteerExperience")
+                  }
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Remove Volunteer Experience
-                </Button>
-              </div>
-            ))}
-            <Button
-              className="bg-green-500"
-              onClick={() => addItem("volunteerExperience")}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Volunteer Experience
-            </Button>
-          </div>
+                  <div key={index} className="p-4  rounded-md space-y-4">
+                    <div>
+                      <Label htmlFor={`volunteerOrg-${index}`}>
+                        Organization Name
+                      </Label>
+                      <Input
+                        id={`volunteerOrg-${index}`}
+                        name="volunteerOrg"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "volunteerExperience")
+                        }
+                        value={exp.volunteerOrg || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`volunteerRole-${index}`}>Role</Label>
+                      <Input
+                        id={`volunteerRole-${index}`}
+                        name="volunteerRole"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "volunteerExperience")
+                        }
+                        value={exp.volunteerRole || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`volunteerDuration-${index}`}>
+                        Duration
+                      </Label>
+                      <Input
+                        id={`volunteerDuration-${index}`}
+                        name="volunteerDuration"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "volunteerExperience")
+                        }
+                        value={exp.volunteerDuration || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`volunteerResponsibilities-${index}`}>
+                        Responsibilities
+                      </Label>
+                      <Textarea
+                        id={`volunteerResponsibilities-${index}`}
+                        name="volunteerResponsibilities"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "volunteerExperience")
+                        }
+                        value={exp.volunteerResponsibilities || ""}
+                        className="h-24"
+                      />
+                    </div>
+                    <Button
+                      className="bg-red-500"
+                      size="sm"
+                      onClick={() => removeItem("volunteerExperience", index)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Volunteer Experience
+                    </Button>
+                  </div>
+                </DraggableExperienceItem>
+              ))}
+              <Button
+                className="bg-green-500"
+                onClick={() => addItem("volunteerExperience")}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Volunteer Experience
+              </Button>
+            </div>
+          </DndProvider>
         );
       case 8:
         return (
-          <div className="space-y-4">
-            {resumeInfo.awards.map((award, index) => (
-              <div key={index} className="p-4 border rounded-md space-y-4">
-                <div>
-                  <Label htmlFor={`awardName-${index}`}>Award Name</Label>
-                  <Input
-                    id={`awardName-${index}`}
-                    name="awardName"
-                    onChange={(e) => handleInputChange(e, index, "awards")}
-                    value={award.awardName || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`awardOrg-${index}`}>
-                    Issuing Organization
-                  </Label>
-                  <Input
-                    id={`awardOrg-${index}`}
-                    name="awardOrg"
-                    onChange={(e) => handleInputChange(e, index, "awards")}
-                    value={award.awardOrg || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`dateReceived-${index}`}>Date Received</Label>
-                  <Input
-                    id={`dateReceived-${index}`}
-                    name="dateReceived"
-                    type="date"
-                    onChange={(e) => handleInputChange(e, index, "awards")}
-                    value={award.dateReceived || ""}
-                  />
-                </div>
-                <Button
-                  className="bg-red-500"
-                  size="sm"
-                  onClick={() => removeItem("awards", index)}
+          <DndProvider backend={HTML5Backend}>
+            <div className="space-y-4">
+              {resumeInfo.awards.map((award, index) => (
+                <DraggableExperienceItem
+                  key={index}
+                  index={index}
+                  moveItem={(fromIndex, toIndex) =>
+                    moveItem(fromIndex, toIndex, "awards")
+                  }
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Remove Award
-                </Button>
-              </div>
-            ))}
-            <Button className="bg-green-500" onClick={() => addItem("awards")}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Award
-            </Button>
-          </div>
+                  <div key={index} className="p-4  rounded-md space-y-4">
+                    <div>
+                      <Label htmlFor={`awardName-${index}`}>Award Name</Label>
+                      <Input
+                        id={`awardName-${index}`}
+                        name="awardName"
+                        onChange={(e) => handleInputChange(e, index, "awards")}
+                        value={award.awardName || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`awardOrg-${index}`}>
+                        Issuing Organization
+                      </Label>
+                      <Input
+                        id={`awardOrg-${index}`}
+                        name="awardOrg"
+                        onChange={(e) => handleInputChange(e, index, "awards")}
+                        value={award.awardOrg || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`dateReceived-${index}`}>
+                        Date Received
+                      </Label>
+                      <Input
+                        id={`dateReceived-${index}`}
+                        name="dateReceived"
+                        type="date"
+                        onChange={(e) => handleInputChange(e, index, "awards")}
+                        value={award.dateReceived || ""}
+                      />
+                    </div>
+                    <Button
+                      className="bg-red-500"
+                      size="sm"
+                      onClick={() => removeItem("awards", index)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Award
+                    </Button>
+                  </div>
+                </DraggableExperienceItem>
+              ))}
+              <Button
+                className="bg-green-500"
+                onClick={() => addItem("awards")}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Award
+              </Button>
+            </div>
+          </DndProvider>
         );
       case 9:
         return (
@@ -746,65 +980,87 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
         );
       case 10:
         return (
-          <div className="space-y-4">
-            {resumeInfo.references.map((ref, index) => (
-              <div key={index} className="p-4 border rounded-md space-y-4">
-                <div>
-                  <Label htmlFor={`refereeName-${index}`}>Referee Name</Label>
-                  <Input
-                    id={`refereeName-${index}`}
-                    name="refereeName"
-                    onChange={(e) => handleInputChange(e, index, "references")}
-                    value={ref.refereeName || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`refereeJobTitle-${index}`}>Job Title</Label>
-                  <Input
-                    id={`refereeJobTitle-${index}`}
-                    name="refereeJobTitle"
-                    onChange={(e) => handleInputChange(e, index, "references")}
-                    value={ref.refereeJobTitle || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`refereeCompany-${index}`}>Company</Label>
-                  <Input
-                    id={`refereeCompany-${index}`}
-                    name="refereeCompany"
-                    onChange={(e) => handleInputChange(e, index, "references")}
-                    value={ref.refereeCompany || ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`refereeContact-${index}`}>
-                    Contact Information
-                  </Label>
-                  <Input
-                    id={`refereeContact-${index}`}
-                    name="refereeContact"
-                    onChange={(e) => handleInputChange(e, index, "references")}
-                    value={ref.refereeContact || ""}
-                  />
-                </div>
-                <Button
-                  className="bg-red-500"
-                  size="sm"
-                  onClick={() => removeItem("references", index)}
+          <DndProvider backend={HTML5Backend}>
+            <div className="space-y-4">
+              {resumeInfo.references.map((ref, index) => (
+                <DraggableExperienceItem
+                  key={index}
+                  index={index}
+                  moveItem={(fromIndex, toIndex) =>
+                    moveItem(fromIndex, toIndex, "references")
+                  }
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Remove Reference
-                </Button>
-              </div>
-            ))}
-            <Button
-              className="bg-green-500"
-              onClick={() => addItem("references")}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Reference
-            </Button>
-          </div>
+                  <div key={index} className="p-4  rounded-md space-y-4">
+                    <div>
+                      <Label htmlFor={`refereeName-${index}`}>
+                        Referee Name
+                      </Label>
+                      <Input
+                        id={`refereeName-${index}`}
+                        name="refereeName"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "references")
+                        }
+                        value={ref.refereeName || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`refereeJobTitle-${index}`}>
+                        Job Title
+                      </Label>
+                      <Input
+                        id={`refereeJobTitle-${index}`}
+                        name="refereeJobTitle"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "references")
+                        }
+                        value={ref.refereeJobTitle || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`refereeCompany-${index}`}>Company</Label>
+                      <Input
+                        id={`refereeCompany-${index}`}
+                        name="refereeCompany"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "references")
+                        }
+                        value={ref.refereeCompany || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`refereeContact-${index}`}>
+                        Contact Information
+                      </Label>
+                      <Input
+                        id={`refereeContact-${index}`}
+                        name="refereeContact"
+                        onChange={(e) =>
+                          handleInputChange(e, index, "references")
+                        }
+                        value={ref.refereeContact || ""}
+                      />
+                    </div>
+                    <Button
+                      className="bg-red-500"
+                      size="sm"
+                      onClick={() => removeItem("references", index)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Reference
+                    </Button>
+                  </div>
+                </DraggableExperienceItem>
+              ))}
+              <Button
+                className="bg-green-500"
+                onClick={() => addItem("references")}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Reference
+              </Button>
+            </div>
+          </DndProvider>
         );
       default:
         return null;
@@ -812,67 +1068,74 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-background rounded-lg shadow-lg">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Multi-Step Form</h1>
-        {showButtons && (
-          <div className="space-x-2 space-y-2 md:space-y-0">
-            <Button onClick={autofillForm} className="bg-blue-500">
-              Autofill Form
-            </Button>
-            <Button className="bg-red-500" onClick={clearStoredData}>
-              Clear Stored Data
-            </Button>
+    <DndProvider backend={HTML5Backend}>
+      <div className="max-w-4xl mx-auto p-6 bg-background rounded-lg shadow-lg">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Multi-Step Form</h1>
+          {showButtons && (
+            <div className="space-x-2 space-y-2 md:space-y-0">
+              <Button onClick={autofillForm} className="bg-blue-500">
+                Autofill Form
+              </Button>
+              <Button className="bg-red-500" onClick={clearStoredData}>
+                Clear Stored Data
+              </Button>
+            </div>
+          )}
+        </div>
+        <div className="mb-6">
+          <div className="flex flex-wrap justify-between mb-2">
+            {steps.map((step, index) => (
+              <Button
+                key={index}
+                className={`mb-2 ${
+                  isStepComplete(step as Step)
+                    ? "bg-card-foreground hover:bg-card"
+                    : ""
+                } ${
+                  index === currentStep
+                    ? "text-white bg-green-500 hover:bg-green-800"
+                    : ""
+                }`}
+                onClick={() => canSkipStep() && setCurrentStep(index)}
+                disabled={!canSkipStep() && index !== currentStep}
+              >
+                {index + 1}. {step.name}
+              </Button>
+            ))}
           </div>
-        )}
-      </div>
-      <div className="mb-6">
-        <div className="flex flex-wrap justify-between mb-2">
-          {steps.map((step, index) => (
-            <Button
-              key={index}
-              className={`mb-2 ${
-                isStepComplete(step) ? "bg-card-foreground hover:bg-card" : ""
-              } ${
-                index === currentStep
-                  ? "text-white bg-green-500 hover:bg-green-800"
-                  : ""
-              }`}
-              onClick={() => canSkipStep() && setCurrentStep(index)}
-            >
-              {index + 1}. {step.name}
-            </Button>
-          ))}
+        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+          >
+            {renderStep()}
+          </motion.div>
+        </AnimatePresence>
+        <div className="mt-6 flex justify-between">
+          <Button
+            onClick={() => setCurrentStep((prev) => Math.max(prev - 1, 0))}
+          >
+            Previous
+          </Button>
+          <Button
+            onClick={() => {
+              if (currentStep === steps.length - 1) {
+                handleOnSubmit();
+              } else {
+                setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+              }
+            }}
+            disabled={!canProceed()}
+          >
+            {currentStep === steps.length - 1 ? "Submit" : "Next"}
+          </Button>
         </div>
       </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentStep}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{ duration: 0.3 }}
-        >
-          {renderStep()}
-        </motion.div>
-      </AnimatePresence>
-      <div className="mt-6 flex justify-between">
-        <Button onClick={() => setCurrentStep((prev) => Math.max(prev - 1, 0))}>
-          Previous
-        </Button>
-        <Button
-          onClick={() => {
-            if (currentStep === steps.length - 1) {
-              handleOnSubmit();
-            } else {
-              setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-            }
-          }}
-          disabled={!canProceed()}
-        >
-          {currentStep === steps.length - 1 ? "Submit" : "Next"}
-        </Button>
-      </div>
-    </div>
+    </DndProvider>
   );
 }

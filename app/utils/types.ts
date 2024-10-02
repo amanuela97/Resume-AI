@@ -1,5 +1,23 @@
 import { FieldValue, Timestamp } from "firebase/firestore";
 
+export type Reply = {
+  id: string;
+  name: string;
+  reply: string;
+  createdAt: string;
+};
+
+export type Review = {
+  id: string;
+  name: string;
+  jobTitle: string;
+  rating: number;
+  review: string;
+  image: string | null;
+  replies: Reply[];
+  createdAt: string;
+};
+
 export interface ColorOption {
   value: string;
   label: string;
@@ -143,3 +161,9 @@ export type ResumeInfo = {
 };
 
 export type Section = keyof ResumeInfo;
+
+export type Step = {
+  name: string;
+  required: string[];
+  field?: keyof ResumeInfo | undefined;
+};

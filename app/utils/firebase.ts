@@ -19,6 +19,7 @@ import {
   QueryDocumentSnapshot,
   DocumentData,
   addDoc,
+  updateDoc,
 } from "firebase/firestore";
 import {
   getDownloadURL,
@@ -33,6 +34,8 @@ import {
   CoverLetter,
   CustomUser,
   FireBaseDate,
+  Reply,
+  Review,
   TemplateMetada,
   uploadTemplateProp,
 } from "./types";
@@ -326,6 +329,89 @@ export const uploadImageToFirebase = async ({
     return url;
   } catch (error) {
     console.error("Error uploading image:", error);
+    return null;
+  }
+};
+
+export const fetchReviews = async (): Promise<Review[] | null> => {
+  try {
+    const reviewsCollection = collection(db, "reviews");
+    const reviewSnapshot = await getDocs(reviewsCollection);
+    const reviewList = reviewSnapshot.docs.map((doc) => ({
+      ...doc.data(),
+    })) as Review[];
+    return reviewList;
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    return null;
+  }
+};
+
+export const addReview = async (review: Review): Promise<Review | null> => {
+  try {
+    const newReviewData = {
+      ...review,
+      replies: [],
+    };
+    const reviewDoc = doc(db, "reviews", review.id);
+    await setDoc(reviewDoc, newReviewData);
+    toast.success("added review successfully");
+    return newReviewData;
+  } catch (error) {
+    console.error("Error adding review:", error);
+    return null;
+  }
+};
+
+export const addReply = async (
+  review: Review,
+  reply: Reply
+): Promise<Reply | null> => {
+  try {
+    const reviewDoc = doc(db, "reviews", review.id);
+    await updateDoc(reviewDoc, {
+      replies: [...review.replies, reply],
+    });
+    toast.success("added reply successfully");
+    return reply;
+  } catch (error) {
+    console.error("Error adding reply:", error);
+    return null;
+  }
+};
+
+export const deleteReply = async (
+  reviewId: string,
+  replyIndex: number
+): Promise<Reply[] | null> => {
+  try {
+    // Step 1: Fetch the review document from Firestore
+    const reviewDocRef = doc(db, "reviews", reviewId);
+    const reviewDoc = await getDoc(reviewDocRef);
+
+    if (reviewDoc.exists()) {
+      const reviewData = reviewDoc.data() as Review;
+
+      // Step 2: Check if replies exist in the review data
+      const existingReplies = reviewData?.replies || [];
+
+      // Step 3: Remove the reply at the specified index
+      const updatedReplies = existingReplies.filter(
+        (_: any, index: number) => index !== replyIndex
+      );
+
+      // Step 4: Update the Firestore document with the updated replies array
+      await updateDoc(reviewDocRef, {
+        replies: updatedReplies,
+      });
+      toast.success("reply was successfully removed");
+      return updatedReplies;
+    } else {
+      console.log("reply does not exists.");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error deleting reply: ", error);
     return null;
   }
 };
