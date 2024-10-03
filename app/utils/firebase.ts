@@ -20,6 +20,8 @@ import {
   DocumentData,
   addDoc,
   updateDoc,
+  onSnapshot,
+  DocumentSnapshot,
 } from "firebase/firestore";
 import {
   getDownloadURL,
@@ -421,4 +423,24 @@ export async function isUserPremium(): Promise<boolean> {
   const decodedToken = await auth.currentUser?.getIdTokenResult();
 
   return decodedToken?.claims?.stripeRole ? true : false;
+}
+
+export function listenToCheckoutSession(
+  uid: string,
+  sessionId: string,
+  callback: (data: any) => void
+) {
+  const firestore = getFirestore();
+  const sessionDocRef = doc(
+    firestore,
+    `users/${uid}/checkout_sessions/${sessionId}`
+  );
+
+  // Listen for changes in the session document
+  onSnapshot(sessionDocRef, (snapshot: DocumentSnapshot) => {
+    const sessionData = snapshot.data();
+    if (sessionData) {
+      callback(sessionData);
+    }
+  });
 }

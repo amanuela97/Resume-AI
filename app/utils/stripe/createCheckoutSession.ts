@@ -15,8 +15,8 @@ export async function createCheckoutSession(uid: string) {
     collection(doc(firestore, "users", uid), "checkout_sessions"),
     {
       price: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID,
-      success_url: window.location.origin,
-      cancel_url: window.location.origin,
+      success_url: process.env.NEXT_PUBLIC_BASE_URL_SUCCESS,
+      cancel_url: process.env.NEXT_PUBLIC_BASE_URL_CANCEL,
     }
   );
 
