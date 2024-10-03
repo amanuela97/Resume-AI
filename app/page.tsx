@@ -41,7 +41,7 @@ export default function Home() {
         ) : (
           <GoogleSignInButton
             onClick={handleGoogleSignIn}
-            className="px-6 py-2 rounded-lg transition-colors text-button-text"
+            className="px-6 py-2 rounded-lg transition-colors dark:text-button-text"
           >
             Continue with Google
           </GoogleSignInButton>
