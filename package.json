@@ -23,6 +23,7 @@
     "@radix-ui/react-slot": "1.1.0",
     "@radix-ui/react-tabs": "1.1.0",
     "@radix-ui/react-tooltip": "1.1.2",
+    "@stripe/stripe-js": "4.6.0",
     "axios": "1.7.7",
     "canvas": "2.11.2",
     "cheerio": "1.0.0",

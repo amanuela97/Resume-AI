@@ -104,7 +104,7 @@ const CoverLetterComponent: React.FC = () => {
           )}
         </div>
       </CardHeader>
-      <CardContent className="text-card-foreground bg-white">
+      <CardContent className="text-card-foreground">
         {coverLetter && (
           <ReactQuill
             value={coverLetter.content} // Format the body before passing it to Quill
@@ -117,22 +117,14 @@ const CoverLetterComponent: React.FC = () => {
             theme="snow"
           />
         )}
-        {coverLetter && (
-          <div className="mt-4 text-sm text-gray-500">
-            <p>
-              Created At:{" "}
-              {isTimestamp(coverLetter.createdAt)
-                ? moment(coverLetter.createdAt.toDate()).fromNow()
-                : "N/A"}
-            </p>
-            <p>
-              Updated At:{" "}
-              {isTimestamp(coverLetter.updatedAt)
-                ? moment(coverLetter.updatedAt.toDate()).fromNow()
-                : "N/A"}
-            </p>
-          </div>
-        )}
+        {coverLetter &&
+          isTimestamp(coverLetter.createdAt) &&
+          isTimestamp(coverLetter.updatedAt) && (
+            <div className="mt-4 text-sm text-gray-500">
+              <p>Created: {moment(coverLetter.createdAt.toDate()).fromNow()}</p>
+              <p>Updated: {moment(coverLetter.updatedAt.toDate()).fromNow()}</p>
+            </div>
+          )}
       </CardContent>
 
       {/* Modal for saving cover letter */}

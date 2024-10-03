@@ -1,5 +1,5 @@
 // firebase.ts (or firebase.js)
-import { initializeApp } from "firebase/app";
+import { getApps, initializeApp } from "firebase/app";
 import {
   getAuth,
   signInWithPopup,
@@ -54,7 +54,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
 // Export Firebase Auth
 export const auth = getAuth(app);
@@ -415,3 +415,10 @@ export const deleteReply = async (
     return null;
   }
 };
+
+export async function isUserPremium(): Promise<boolean> {
+  await auth.currentUser?.getIdToken(true);
+  const decodedToken = await auth.currentUser?.getIdTokenResult();
+
+  return decodedToken?.claims?.stripeRole ? true : false;
+}
