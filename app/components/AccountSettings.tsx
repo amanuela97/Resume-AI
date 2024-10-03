@@ -6,12 +6,10 @@ import Image from "next/image";
 import { useAppStore } from "@/app/store";
 import moment from "moment";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
 
 export default function AccountSettings() {
   const { user, logoutUser } = useAppStore();
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleDeleteAccount = async () => {
     if (!user) {
