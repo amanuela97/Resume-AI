@@ -1,13 +1,53 @@
-import React from "react";
+import React, { useState } from "react";
 import { CardContent, CardFooter } from "./ui/card";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 import Image from "next/image";
 import { useAppStore } from "@/app/store";
 import moment from "moment";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 export default function AccountSettings() {
-  const { user } = useAppStore();
+  const { user, logoutUser } = useAppStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleDeleteAccount = async () => {
+    if (!user) {
+      console.error("No user is currently logged in.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/deleteUser`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ uid: user.uid }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message);
+        console.log("Success:", data.message);
+        logoutUser();
+      } else {
+        toast.error(data.message);
+        console.error("Error:", data.message);
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -47,7 +87,12 @@ export default function AccountSettings() {
         </div>
       </CardContent>
       <CardFooter>
-        <Button className="bg-red-500 hover:bg-red-600">Delete Account</Button>
+        <Button
+          className="bg-red-500 hover:bg-red-600"
+          onClick={handleDeleteAccount}
+        >
+          {isLoading ? "Deleting..." : "Delete Account"}
+        </Button>
       </CardFooter>
     </>
   );
