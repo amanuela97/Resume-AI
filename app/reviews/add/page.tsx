@@ -21,7 +21,6 @@ import {
 import { useAppStore } from "@/app/store";
 import { addReview } from "@/app/utils/firebase";
 import { v4 as uuidv4 } from "uuid";
-import { serverTimestamp } from "firebase/firestore";
 
 export default function Component() {
   const { user, setReviews, reviews } = useAppStore();

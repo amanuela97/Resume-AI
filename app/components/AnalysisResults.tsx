@@ -180,14 +180,12 @@ export default function AnalysisResults() {
           <p className="mt-2">{recommendation}</p>
         </div>
 
-        <div className="mt-4 text-sm text-gray-500">
-          <p>
-            Created At:{" "}
-            {isTimestamp(analysis.createdAt)
-              ? moment(analysis.createdAt.toDate()).fromNow()
-              : "N/A"}
-          </p>
-        </div>
+        {isTimestamp(analysis.createdAt) && isTimestamp(analysis.updatedAt) && (
+          <div className="mt-4 text-sm text-gray-500">
+            <p>Created: {moment(analysis.createdAt.toDate()).fromNow()}</p>
+            <p>Updated: {moment(analysis.updatedAt.toDate()).fromNow()}</p>
+          </div>
+        )}
       </CardContent>
 
       {/* Modal for saving analysis */}

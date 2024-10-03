@@ -1,5 +1,5 @@
 // firebase.ts (or firebase.js)
-import { initializeApp } from "firebase/app";
+import { getApps, initializeApp } from "firebase/app";
 import {
   getAuth,
   signInWithPopup,
@@ -20,6 +20,8 @@ import {
   DocumentData,
   addDoc,
   updateDoc,
+  onSnapshot,
+  DocumentSnapshot,
 } from "firebase/firestore";
 import {
   getDownloadURL,
@@ -54,7 +56,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
 // Export Firebase Auth
 export const auth = getAuth(app);
@@ -415,3 +417,30 @@ export const deleteReply = async (
     return null;
   }
 };
+
+export async function isUserPremium(): Promise<boolean> {
+  await auth.currentUser?.getIdToken(true);
+  const decodedToken = await auth.currentUser?.getIdTokenResult();
+
+  return decodedToken?.claims?.stripeRole ? true : false;
+}
+
+export function listenToCheckoutSession(
+  uid: string,
+  sessionId: string,
+  callback: (data: any) => void
+) {
+  const firestore = getFirestore();
+  const sessionDocRef = doc(
+    firestore,
+    `users/${uid}/checkout_sessions/${sessionId}`
+  );
+
+  // Listen for changes in the session document
+  onSnapshot(sessionDocRef, (snapshot: DocumentSnapshot) => {
+    const sessionData = snapshot.data();
+    if (sessionData) {
+      callback(sessionData);
+    }
+  });
+}
