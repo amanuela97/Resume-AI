@@ -74,39 +74,9 @@ export const signInWithGoogle = async () => {
   }
 };
 
-const fetchUserByUid = async (uid: string): Promise<CustomUser | null> => {
-  try {
-    // Reference to the document in the 'users' collection using the uid
-    const userDocRef = doc(db, "users", uid);
-
-    // Fetch the document
-    const userDoc = await getDoc(userDocRef);
-
-    // Check if the document exists
-    if (userDoc.exists()) {
-      // Document data is found
-      const userData = userDoc.data() as CustomUser;
-      return userData; // Return the user data
-    } else {
-      // No such document
-      console.log("No user found with this UID.");
-      return null;
-    }
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    return null;
-  }
-};
-
 export const storeUserData = async (user: User): Promise<CustomUser> => {
   if (!user) {
     throw new Error("user is required");
-  }
-
-  const foundUser = await fetchUserByUid(user.uid);
-
-  if (foundUser) {
-    return foundUser;
   }
 
   const {
@@ -422,6 +392,7 @@ export async function isUserPremium(): Promise<boolean> {
   await auth.currentUser?.getIdToken(true);
   const decodedToken = await auth.currentUser?.getIdTokenResult();
 
+  console.log(decodedToken?.claims?.stripeRole);
   return decodedToken?.claims?.stripeRole ? true : false;
 }
 
