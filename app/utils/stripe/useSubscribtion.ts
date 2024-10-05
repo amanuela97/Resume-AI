@@ -5,19 +5,8 @@ import {
   query,
   where,
   onSnapshot,
-  Timestamp,
 } from "firebase/firestore";
-import { useAppStore } from "@/app/store";
-import { CustomUser } from "../types";
-
-interface Subscription {
-  id: string;
-  current_period_end: Timestamp;
-  current_period_start: Timestamp;
-  role: string;
-  status: string;
-  cancel_at: Timestamp;
-}
+import { CustomUser, Subscription } from "../types";
 
 export function useSubscription(user: CustomUser | null) {
   const [subscription, setSubscription] = useState<Subscription | null>(null);

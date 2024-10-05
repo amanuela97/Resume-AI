@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   createCheckoutSession,
   getPortalUrl,
@@ -10,12 +10,14 @@ import { Button } from "./ui/button";
 import { useSubscription } from "../utils/stripe/useSubscribtion";
 import moment from "moment";
 import { useRouter } from "next/navigation";
+import { isPastCancelDate } from "../utils/helper";
 
 export default function Payment() {
   const { user } = useAppStore();
-  const { loading, premiumStatus } = usePremiumStatus(user);
+  const { loading, premiumStatus, setPremiumStatus } = usePremiumStatus(user);
   const { subscription } = useSubscription(user);
   const router = useRouter();
+  const [canceling, setCanceling] = useState(false);
 
   const manageSubscription = async () => {
     if (!user) {
@@ -29,6 +31,37 @@ export default function Payment() {
       console.log("Manage Subscription");
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleImmediateCancel = async () => {
+    if (!user || !subscription) return;
+    setCanceling(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/cancelSubscription`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            uid: user?.uid,
+            subscriptionId: subscription?.id,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        console.log("Subscription canceled successfully", response);
+        setPremiumStatus(false);
+      } else {
+        console.error("Failed to cancel subscription", response);
+      }
+    } catch (error) {
+      console.error("Error canceling subscription:", error);
+    } finally {
+      setCanceling(false);
     }
   };
 
@@ -62,7 +95,7 @@ export default function Payment() {
                   ? moment(subscription.current_period_start.toDate()).format(
                       "MMMM Do YYYY"
                     )
-                  : "N/A"}
+                  : null}
               </span>
               <span className="text-xs text-muted-foreground">
                 period end:{" "}
@@ -70,7 +103,7 @@ export default function Payment() {
                   ? moment(subscription.current_period_end.toDate()).format(
                       "MMMM Do YYYY"
                     )
-                  : "N/A"}
+                  : null}
               </span>
               {subscription?.cancel_at && (
                 <span className="text-xs text-muted-foreground text-red-500">
@@ -79,15 +112,28 @@ export default function Payment() {
                     ? moment(subscription.cancel_at.toDate()).format(
                         "MMMM Do YYYY"
                       )
-                    : "N/A"}
+                    : null}
                 </span>
               )}
-              <Button
-                className="px-6 py-2 mt-4 w-fit rounded-lg transition-colors dark:text-button-text bg-blue-500"
-                onClick={manageSubscription}
-              >
-                Manage Subscription
-              </Button>
+              {subscription && (
+                <>
+                  {isPastCancelDate(subscription) ? (
+                    <Button
+                      className="px-6 py-2 mt-4 w-fit rounded-lg transition-colors dark:text-button-text bg-blue-500"
+                      onClick={manageSubscription}
+                    >
+                      Manage Subscription
+                    </Button>
+                  ) : (
+                    <Button
+                      className="px-6 py-2 mt-4 w-fit rounded-lg transition-colors dark:text-button-text bg-red-500"
+                      onClick={handleImmediateCancel}
+                    >
+                      {canceling ? "Processing..." : "Cancel Subscription"}
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
           )}
         </CardContent>

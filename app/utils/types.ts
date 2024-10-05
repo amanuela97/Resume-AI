@@ -1,5 +1,14 @@
 import { FieldValue, Timestamp } from "firebase/firestore";
 
+export interface Subscription {
+  id: string;
+  current_period_end: Timestamp;
+  current_period_start: Timestamp;
+  role: string;
+  status: string;
+  cancel_at: Timestamp;
+}
+
 export type Reply = {
   id: string;
   name: string;
