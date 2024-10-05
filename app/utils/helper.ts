@@ -3,9 +3,11 @@ import {
   ContentType,
   CoverLetterResponseType,
   ResumeInfo,
+  Subscription,
 } from "./types";
 import { TDocumentDefinitions } from "pdfmake/interfaces";
 import htmlToPdfmake from "html-to-pdfmake";
+import moment from "moment";
 
 export const convertMessageContentToString = (result: any): string => {
   let contentString: string;
@@ -168,4 +170,16 @@ export const isAdmin = (email: string | null): boolean => {
   const adminList = process.env.NEXT_PUBLIC_ADMIN_LIST;
   const list = adminList ? adminList.split(",") : [];
   return list.includes(email);
+};
+
+export const isPastCancelDate = (subscription: Subscription) => {
+  const currentPeriodStart = subscription.current_period_start.toDate();
+  const currentDate = new Date();
+  const date = parseInt(process.env.NEXT_PUBLIC_CANCEL_DATE || "14");
+
+  const daysSinceStart = moment(currentDate).diff(
+    moment(currentPeriodStart),
+    "days"
+  );
+  return daysSinceStart > date;
 };

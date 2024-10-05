@@ -16,5 +16,5 @@ export default function usePremiumStatus(user: CustomUser | null) {
     }
   }, [user]);
 
-  return { premiumStatus, loading };
+  return { premiumStatus, loading, setPremiumStatus };
 }
