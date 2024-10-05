@@ -51,7 +51,6 @@ export default function AccountSettings() {
 
       if (response.ok) {
         toast.success(data.message);
-        console.log("Success:", data.message);
         logoutUser();
       } else {
         toast.error(data.message);

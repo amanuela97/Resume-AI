@@ -56,7 +56,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+export const app = !getApps().length
+  ? initializeApp(firebaseConfig)
+  : getApps()[0];
 
 // Export Firebase Auth
 export const auth = getAuth(app);
@@ -73,6 +75,8 @@ export const signInWithGoogle = async () => {
     throw error;
   }
 };
+
+export const signOut = async () => await auth.signOut();
 
 export const storeUserData = async (user: User): Promise<CustomUser> => {
   if (!user) {
@@ -104,7 +108,7 @@ export const storeUserData = async (user: User): Promise<CustomUser> => {
   };
 
   try {
-    await setDoc(doc(db, "users", uid), userData);
+    await setDoc(doc(db, "users", uid), userData, { merge: true });
     return userData;
   } catch (error) {
     console.error("Error storing user data:", error);
@@ -392,7 +396,6 @@ export async function isUserPremium(): Promise<boolean> {
   await auth.currentUser?.getIdToken(true);
   const decodedToken = await auth.currentUser?.getIdTokenResult();
 
-  console.log(decodedToken?.claims?.stripeRole);
   return decodedToken?.claims?.stripeRole ? true : false;
 }
 

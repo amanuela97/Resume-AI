@@ -21,14 +21,16 @@ import {
 import { useState } from "react";
 import Image from "next/image";
 import ThemeSwitcher from "./ThemeSwitcher";
+import { signOut } from "../utils/firebase";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { user, logoutUser } = useAppStore();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     logoutUser();
+    await signOut();
     router.push("/");
   };
 
@@ -61,7 +63,10 @@ export default function Navbar() {
                 </div>
               </div>
               <DropdownMenuContent align="end" className="w-56 bg-card">
-                <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer my-2 hover:bg-background">
+                <DropdownMenuItem
+                  onClick={() => router.push("/settings")}
+                  className="cursor-pointer my-2 hover:bg-background"
+                >
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>
