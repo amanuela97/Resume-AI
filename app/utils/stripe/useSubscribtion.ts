@@ -16,6 +16,7 @@ interface Subscription {
   current_period_start: Timestamp;
   role: string;
   status: string;
+  cancel_at: Timestamp;
 }
 
 export function useSubscription(user: CustomUser | null) {
