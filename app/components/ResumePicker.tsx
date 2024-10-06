@@ -179,9 +179,9 @@ export default function ResumePicker() {
                           <ImageNext
                             src={template.previewImageURL}
                             alt={template.name}
-                            width={300}
+                            width={300} // Desktop dimensions
                             height={420}
-                            className="object-cover" // Ensures the image fits within the container
+                            className="object-cover" // Makes image responsive
                           />
                         ) : (
                           <SkeletonLoader />
@@ -202,8 +202,8 @@ export default function ResumePicker() {
 
         <div className="w-full lg:w-1/2 p-4 flex items-center justify-center min-h-[40vh] lg:min-h-0 relative mb-6">
           <div
-            className={` absolute top-4 right-4 z-10  transition-opacity duration-700 ease-in-out ${
-              docBuffer ? "opacity-100" : "opacity-0"
+            className={`absolute top-4 right-4 z-10  transition-opacity duration-700 ease-in-out ${
+              docBuffer ? "block" : "hidden"
             }`}
           >
             <DropdownMenu>

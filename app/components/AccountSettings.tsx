@@ -100,7 +100,7 @@ export default function AccountSettings() {
           </div>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex justify-center sm:justify-start p-2 sm:w-fit">
         <Button
           className="bg-red-500 hover:bg-red-600"
           onClick={() => setIsDeleteModalOpen(true)}

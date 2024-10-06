@@ -22,9 +22,10 @@ export default function Settings() {
     <ProtectedRoute>
       <div className="container mx-auto p-4 min-h-screen">
         <Card className="w-full">
-          <CardContent className="p-0">
-            <div className="flex">
-              <div className="w-64 border-r">
+          <CardContent>
+            <div className="flex flex-col sm:flex-row">
+              {/* Sidebar for larger screens */}
+              <div className="sm:w-64 w-full sm:border-r my-2 sm:mb-0 flex flex-row sm:flex-col">
                 {settingsOptions.map((option) => (
                   <Button
                     key={option.id}
@@ -43,6 +44,7 @@ export default function Settings() {
                   </Button>
                 ))}
               </div>
+              {/* Main content */}
               <div className="flex-1 p-6">
                 <h2 className="text-2xl font-bold mb-4 flex items-center">
                   {settingsOptions.find((option) => option.id === activeSetting)
