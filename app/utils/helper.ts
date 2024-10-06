@@ -8,6 +8,7 @@ import {
 import { TDocumentDefinitions } from "pdfmake/interfaces";
 import htmlToPdfmake from "html-to-pdfmake";
 import moment from "moment";
+import { checkIfFirstSubscription } from "./firebase";
 
 export const convertMessageContentToString = (result: any): string => {
   let contentString: string;
@@ -182,4 +183,13 @@ export const isPastCancelDate = (subscription: Subscription) => {
     "days"
   );
   return daysSinceStart > date;
+};
+
+export const deadlineDate = (subscription: Subscription) => {
+  let currentPeriodStartDate = subscription.current_period_start.toDate();
+  let newDate = new Date(currentPeriodStartDate);
+  newDate.setDate(
+    newDate.getDate() + parseInt(process.env.NEXT_PUBLIC_CANCEL_DATE || "14")
+  );
+  return newDate;
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   createCheckoutSession,
   getPortalUrl,
@@ -10,7 +10,8 @@ import { Button } from "./ui/button";
 import { useSubscription } from "../utils/stripe/useSubscribtion";
 import moment from "moment";
 import { useRouter } from "next/navigation";
-import { isPastCancelDate } from "../utils/helper";
+import { deadlineDate, isPastCancelDate } from "../utils/helper";
+import { checkIfFirstSubscription } from "../utils/firebase";
 
 export default function Payment() {
   const { user } = useAppStore();
@@ -18,6 +19,19 @@ export default function Payment() {
   const { subscription } = useSubscription(user);
   const router = useRouter();
   const [canceling, setCanceling] = useState(false);
+  const [isFirstSubscription, setIsFirstSubscription] = useState(false);
+
+  useEffect(() => {
+    if (subscription && user) {
+      checkIfFirstSubscription(user.uid)
+        .then((isFirst) => {
+          setIsFirstSubscription(isFirst);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  }, [subscription, user]);
 
   const manageSubscription = async () => {
     if (!user) {
@@ -67,6 +81,9 @@ export default function Payment() {
 
   if (loading) return <p>loading...</p>;
 
+  if (premiumStatus === null) return <p>unable to display payment details.</p>;
+
+  console.log(isFirstSubscription);
   return (
     <>
       {user && (
@@ -117,7 +134,7 @@ export default function Payment() {
               )}
               {subscription && (
                 <>
-                  {isPastCancelDate(subscription) ? (
+                  {!isFirstSubscription || isPastCancelDate(subscription) ? (
                     <Button
                       className="px-6 py-2 mt-4 w-fit rounded-lg transition-colors dark:text-button-text bg-blue-500"
                       onClick={manageSubscription}
@@ -125,12 +142,19 @@ export default function Payment() {
                       Manage Subscription
                     </Button>
                   ) : (
-                    <Button
-                      className="px-6 py-2 mt-4 w-fit rounded-lg transition-colors dark:text-button-text bg-red-500"
-                      onClick={handleImmediateCancel}
-                    >
-                      {canceling ? "Processing..." : "Cancel Subscription"}
-                    </Button>
+                    <div className="flex flex-col">
+                      <span className="mt-2 text-xs text-muted-foreground text-blue-400">
+                        You can cancel your subscription before{" "}
+                        {deadlineDate(subscription).toLocaleDateString()} and
+                        you will not be charged.
+                      </span>
+                      <Button
+                        className="px-6 py-2 mt-4 w-fit rounded-lg transition-colors dark:text-button-text bg-red-500"
+                        onClick={handleImmediateCancel}
+                      >
+                        {canceling ? "Processing..." : "Cancel Subscription"}
+                      </Button>
+                    </div>
                   )}
                 </>
               )}

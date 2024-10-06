@@ -38,6 +38,7 @@ import {
   FireBaseDate,
   Reply,
   Review,
+  Subscription,
   TemplateMetada,
   uploadTemplateProp,
 } from "./types";
@@ -392,11 +393,16 @@ export const deleteReply = async (
   }
 };
 
-export async function isUserPremium(): Promise<boolean> {
-  await auth.currentUser?.getIdToken(true);
-  const decodedToken = await auth.currentUser?.getIdTokenResult();
+export async function isUserPremium(): Promise<boolean | null> {
+  try {
+    await auth.currentUser?.getIdToken(true);
+    const decodedToken = await auth.currentUser?.getIdTokenResult();
 
-  return decodedToken?.claims?.stripeRole ? true : false;
+    return decodedToken?.claims?.stripeRole ? true : false;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 }
 
 export function listenToCheckoutSession(
@@ -418,3 +424,19 @@ export function listenToCheckoutSession(
     }
   });
 }
+
+export const checkIfFirstSubscription = async (uid: string) => {
+  try {
+    const userDocRef = doc(db, "users", uid);
+
+    const subscriptionsCollectionRef = collection(userDocRef, "subscriptions");
+    const previousSubscriptionsSnapshot = await getDocs(
+      subscriptionsCollectionRef
+    );
+
+    return previousSubscriptionsSnapshot.docs.length <= 1;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
