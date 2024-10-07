@@ -8,7 +8,7 @@ import {
 import { TDocumentDefinitions } from "pdfmake/interfaces";
 import htmlToPdfmake from "html-to-pdfmake";
 import moment from "moment";
-import { checkIfFirstSubscription } from "./firebase";
+import tokenizer from "gpt-tokenizer";
 
 export const convertMessageContentToString = (result: any): string => {
   let contentString: string;
@@ -193,3 +193,7 @@ export const deadlineDate = (subscription: Subscription) => {
   );
   return newDate;
 };
+
+export function getTokenCount(inputText: string) {
+  return tokenizer.encode(inputText).length; // Returns number of tokens
+}

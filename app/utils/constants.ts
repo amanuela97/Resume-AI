@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FaFileAlt, FaEnvelopeOpen, FaChartBar } from "react-icons/fa";
 import { ColorOption } from "./types";
 
 // Step 9: used to calculate the price based on GPT-3.5-turbo pricing ($0.0015 per 1k tokens)
@@ -82,4 +83,25 @@ export const colorOptions: ColorOption[] = [
   { value: "#8A2BE2", label: "Blue Violet" },
   { value: "#000000", label: "Black" },
   { value: "#ffffff", label: "White" },
+];
+
+export const features = [
+  {
+    title: "Smart Resume Builder",
+    description:
+      "Create professional resumes in minutes using our AI-powered templates. Customize them to reflect your personal style and experience.",
+    icon: FaFileAlt,
+  },
+  {
+    title: "AI Cover Letter Generator",
+    description:
+      "Generate tailored cover letters based on the job description and customize them before saving for future use.",
+    icon: FaEnvelopeOpen,
+  },
+  {
+    title: "Job Application Analysis",
+    description:
+      "Upload a resume and job description to receive a detailed analysis on strengths, weaknesses, and compatibility with the job.",
+    icon: FaChartBar,
+  },
 ];

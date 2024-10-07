@@ -141,3 +141,17 @@ body::-webkit-scrollbar-thumb {
     background-position: 1000px 0; /* Moves horizontally */
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  button {
+    .home-page-background {
+      animation: movePattern 20s linear infinite;
+    }
+  }
+}
