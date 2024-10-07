@@ -1084,7 +1084,7 @@ export default function MultiStepForm({ onSubmit }: { onSubmit: () => void }) {
           )}
         </div>
         <div className="mb-6">
-          <div className="flex flex-wrap justify-between mb-2">
+          <div className="flex flex-wrap justify-between mb-2 p-2">
             {steps.map((step, index) => (
               <Button
                 key={index}

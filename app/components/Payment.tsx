@@ -1,23 +1,36 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   createCheckoutSession,
   getPortalUrl,
 } from "@/app/utils/stripe/stripePayment";
-import usePremiumStatus from "@/app/utils/stripe/usePremiumStatus";
 import { useAppStore } from "../store";
 import { CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { useSubscription } from "../utils/stripe/useSubscribtion";
 import moment from "moment";
 import { useRouter } from "next/navigation";
-import { isPastCancelDate } from "../utils/helper";
+import { deadlineDate, isPastCancelDate } from "../utils/helper";
+import { checkIfFirstSubscription } from "../utils/firebase";
 
 export default function Payment() {
   const { user } = useAppStore();
-  const { loading, premiumStatus, setPremiumStatus } = usePremiumStatus(user);
-  const { subscription } = useSubscription(user);
+  const { subscription, loading, setSubscription, error } =
+    useSubscription(user);
   const router = useRouter();
   const [canceling, setCanceling] = useState(false);
+  const [isFirstSubscription, setIsFirstSubscription] = useState(false);
+
+  useEffect(() => {
+    if (subscription && user) {
+      checkIfFirstSubscription(user.uid)
+        .then((isFirst) => {
+          setIsFirstSubscription(isFirst);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  }, [subscription, user]);
 
   const manageSubscription = async () => {
     if (!user) {
@@ -54,7 +67,7 @@ export default function Payment() {
 
       if (response.ok) {
         console.log("Subscription canceled successfully", response);
-        setPremiumStatus(false);
+        setSubscription({ ...subscription, status: "canceled" });
       } else {
         console.error("Failed to cancel subscription", response);
       }
@@ -67,15 +80,23 @@ export default function Payment() {
 
   if (loading) return <p>loading...</p>;
 
+  if (!subscription) return <p>unable to display payment details.</p>;
+
   return (
     <>
       {user && (
         <CardContent className="space-y-6">
-          {!premiumStatus ? (
+          {subscription.status !== "active" ? (
             <div className="flex flex-col items-start w-fit p-2 space-y-2">
               <span>you are not a premium user</span>
               <Button
-                onClick={() => createCheckoutSession(user.uid)}
+                onClick={() =>
+                  createCheckoutSession(
+                    user.uid,
+                    process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID_MONTHLY ||
+                      ""
+                  )
+                }
                 className="bg-button-bg hover:bg-button-hover active:bg-button-active dark:bg-button-bg dark:hover:bg-button-hover dark:active:bg-button-active text-button-text"
               >
                 Upgrade to premium!
@@ -117,7 +138,7 @@ export default function Payment() {
               )}
               {subscription && (
                 <>
-                  {isPastCancelDate(subscription) ? (
+                  {!isFirstSubscription || isPastCancelDate(subscription) ? (
                     <Button
                       className="px-6 py-2 mt-4 w-fit rounded-lg transition-colors dark:text-button-text bg-blue-500"
                       onClick={manageSubscription}
@@ -125,12 +146,19 @@ export default function Payment() {
                       Manage Subscription
                     </Button>
                   ) : (
-                    <Button
-                      className="px-6 py-2 mt-4 w-fit rounded-lg transition-colors dark:text-button-text bg-red-500"
-                      onClick={handleImmediateCancel}
-                    >
-                      {canceling ? "Processing..." : "Cancel Subscription"}
-                    </Button>
+                    <div className="flex flex-col">
+                      <span className="mt-2 text-xs text-muted-foreground text-blue-400">
+                        You can cancel your subscription before{" "}
+                        {deadlineDate(subscription).toLocaleDateString()} and
+                        you will not be charged.
+                      </span>
+                      <Button
+                        className="px-6 py-2 mt-4 w-fit rounded-lg transition-colors dark:text-button-text bg-red-500"
+                        onClick={handleImmediateCancel}
+                      >
+                        {canceling ? "Processing..." : "Cancel Subscription"}
+                      </Button>
+                    </div>
                   )}
                 </>
               )}

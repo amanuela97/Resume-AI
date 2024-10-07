@@ -1,5 +1,20 @@
 import { FieldValue, Timestamp } from "firebase/firestore";
 
+export interface PricingPlan {
+  name: string;
+  price: {
+    monthly: {
+      amount: number;
+      id: string;
+    };
+    yearly: {
+      amount: number;
+      id: string;
+    };
+  };
+  features: string[];
+  buttonText: string;
+}
 export interface Subscription {
   id: string;
   current_period_end: Timestamp;

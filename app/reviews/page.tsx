@@ -5,7 +5,6 @@ import { ReviewItem } from "../components/reviews/ReviewItem";
 import { Button } from "../components/ui/button";
 import { useAppStore } from "../store";
 import { fetchReviews } from "../utils/firebase";
-import Loader from "../components/Loader";
 import { useRouter } from "next/navigation";
 
 export default function ReviewsPage() {
@@ -20,7 +19,9 @@ export default function ReviewsPage() {
         setReviews(newReviews);
       }
     };
-    handleFetchReviews();
+    if (reviews.length <= 0) {
+      handleFetchReviews();
+    }
   }, []);
 
   const loadMoreReviews = () => {

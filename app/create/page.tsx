@@ -58,6 +58,9 @@ export default function Create() {
 
       if (!response.ok) {
         const error = await response.json();
+        if (error?.error) {
+          toast.error(error.error);
+        }
         throw new Error(
           error ? JSON.stringify(error) : `${contentType} failed to be created`
         );

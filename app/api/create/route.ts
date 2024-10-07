@@ -14,7 +14,9 @@ import {
 import fs from "fs";
 import path from "path";
 import { ContentType } from "@/app/utils/types";
+import { getTokenCount } from "@/app/utils/helper";
 
+const maxTokens = parseInt(process.env.NEXT_PUBLIC_MAX_TOKEN || "4000");
 const tempDir = path.join("/tmp", "officeParserTemp", "tempfiles");
 
 // Ensure the directory exists
@@ -60,6 +62,17 @@ export async function POST(request: Request) {
       );
     }
 
+    const inputTokenCount = getTokenCount(fileText + " " + jobDescription);
+
+    if (inputTokenCount > maxTokens) {
+      return NextResponse.json(
+        {
+          error: `Input text is too long. Either reduce the length of the job description or upload a smaller file.`,
+        },
+        { status: 400 }
+      );
+    }
+
     // Step 2: Define a prompt using Langchain PromptTemplate
     const template = new PromptTemplate({
       template:
@@ -84,7 +97,7 @@ export async function POST(request: Request) {
       apiKey: process.env.OPENAI_API_KEY,
       model: "gpt-3.5-turbo",
       temperature: 0,
-      maxTokens: 500,
+      maxTokens: 1000,
     });
 
     // Use the 'generate' method to get the full LLMResult

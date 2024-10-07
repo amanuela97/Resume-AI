@@ -8,7 +8,9 @@ export default function Cancel() {
       <p className="leading-7">The good news is, you can try again 😊</p>
       <div className="mt-5">
         <Link href="/">
-          <Button variant="outline">Home</Button>
+          <Button variant="outline" className="bg-card shadow-lg">
+            Go back to home
+          </Button>
         </Link>
       </div>
     </main>
