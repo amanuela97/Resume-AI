@@ -49,6 +49,11 @@ export default function PricingSection() {
               <p className="max-w-[600px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mx-auto">
                 Choose the plan that's right for you
               </p>
+              <p className="max-w-[600px] mx-auto text-sm font-semibold">
+                Not sure if you want to be a prime user? First time subscribers
+                can cancel subscription within 14 days of purchase to receive a
+                full refund.
+              </p>
             </div>
           </div>
           <div className="flex justify-center items-center space-x-4">
