@@ -10,14 +10,14 @@ import { app } from "../firebase";
 import { CustomUser } from "../types";
 import initializeStripe from "./stripe";
 
-export async function createCheckoutSession(uid: string) {
+export async function createCheckoutSession(uid: string, price: string) {
   const firestore = getFirestore();
 
   // Create a new checkout session in the subcollection inside this user's document
   const checkoutSessionRef = await addDoc(
     collection(doc(firestore, "users", uid), "checkout_sessions"),
     {
-      price: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID,
+      price: price,
       success_url: process.env.NEXT_PUBLIC_BASE_URL_SUCCESS,
       cancel_url: process.env.NEXT_PUBLIC_BASE_URL_CANCEL,
     }

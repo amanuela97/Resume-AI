@@ -3,7 +3,6 @@ import {
   createCheckoutSession,
   getPortalUrl,
 } from "@/app/utils/stripe/stripePayment";
-import usePremiumStatus from "@/app/utils/stripe/usePremiumStatus";
 import { useAppStore } from "../store";
 import { CardContent } from "./ui/card";
 import { Button } from "./ui/button";
@@ -15,8 +14,8 @@ import { checkIfFirstSubscription } from "../utils/firebase";
 
 export default function Payment() {
   const { user } = useAppStore();
-  const { loading, premiumStatus, setPremiumStatus } = usePremiumStatus(user);
-  const { subscription } = useSubscription(user);
+  const { subscription, loading, setSubscription, error } =
+    useSubscription(user);
   const router = useRouter();
   const [canceling, setCanceling] = useState(false);
   const [isFirstSubscription, setIsFirstSubscription] = useState(false);
@@ -68,7 +67,7 @@ export default function Payment() {
 
       if (response.ok) {
         console.log("Subscription canceled successfully", response);
-        setPremiumStatus(false);
+        setSubscription({ ...subscription, status: "canceled" });
       } else {
         console.error("Failed to cancel subscription", response);
       }
@@ -81,18 +80,23 @@ export default function Payment() {
 
   if (loading) return <p>loading...</p>;
 
-  if (premiumStatus === null) return <p>unable to display payment details.</p>;
+  if (!subscription) return <p>unable to display payment details.</p>;
 
-  console.log(isFirstSubscription);
   return (
     <>
       {user && (
         <CardContent className="space-y-6">
-          {!premiumStatus ? (
+          {subscription.status !== "active" ? (
             <div className="flex flex-col items-start w-fit p-2 space-y-2">
               <span>you are not a premium user</span>
               <Button
-                onClick={() => createCheckoutSession(user.uid)}
+                onClick={() =>
+                  createCheckoutSession(
+                    user.uid,
+                    process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID_MONTHLY ||
+                      ""
+                  )
+                }
                 className="bg-button-bg hover:bg-button-hover active:bg-button-active dark:bg-button-bg dark:hover:bg-button-hover dark:active:bg-button-active text-button-text"
               >
                 Upgrade to premium!

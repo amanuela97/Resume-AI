@@ -56,5 +56,5 @@ export function useSubscription(user: CustomUser | null) {
     return () => unsubscribe(); // Cleanup on unmount
   }, []);
 
-  return { subscription, loading, error };
+  return { subscription, loading, error, setSubscription };
 }

@@ -15,7 +15,6 @@ export default function Hero() {
       const user = await signInWithGoogle();
       const customUser = await storeUserData(user);
       setUser(customUser);
-      router.push("/create");
     } catch (error) {
       console.error("Error signing in with Google:", error);
     }

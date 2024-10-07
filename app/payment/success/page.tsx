@@ -7,7 +7,9 @@ export default async function SuccessPage() {
       <h1 className="text-4xl font-bold mb-2">Payment was successful. 🎉</h1>
       <div className="mt-5">
         <Link href="/">
-          <Button variant="outline">Get Started</Button>
+          <Button variant="outline" className="bg-card shadow-lg">
+            Get Started
+          </Button>
         </Link>
       </div>
     </main>

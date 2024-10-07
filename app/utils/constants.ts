@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FaFileAlt, FaEnvelopeOpen, FaChartBar } from "react-icons/fa";
-import { ColorOption } from "./types";
+import { ColorOption, PricingPlan } from "./types";
 
 // Step 9: used to calculate the price based on GPT-3.5-turbo pricing ($0.0015 per 1k tokens)
 export const PRICE_PER_THOUSAND_TOKENS = 0.0015;
@@ -105,3 +105,42 @@ export const features = [
     icon: FaChartBar,
   },
 ];
+
+export const pricingData: { [key: string]: PricingPlan } = {
+  free: {
+    name: "Free",
+    price: {
+      monthly: {
+        amount: 0,
+        id: "",
+      },
+      yearly: {
+        amount: 0,
+        id: "",
+      },
+    },
+    features: ["Create unlimited resumes", "Access to all templates"],
+    buttonText: "Get Started",
+  },
+  premium: {
+    name: "Premium",
+    price: {
+      monthly: {
+        amount: 5,
+        id: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID_MONTHLY || "",
+      },
+      yearly: {
+        amount: 60,
+        id: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID_YEARLY || "",
+      },
+    },
+    features: [
+      "Create unlimited resumes",
+      "Access to all templates",
+      "Generate unlimited resume analysis",
+      "Generate unlimited cover letters",
+      "Store analysis and resumes for later access",
+    ],
+    buttonText: "Upgrade to Premium",
+  },
+};

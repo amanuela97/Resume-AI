@@ -393,18 +393,6 @@ export const deleteReply = async (
   }
 };
 
-export async function isUserPremium(): Promise<boolean | null> {
-  try {
-    await auth.currentUser?.getIdToken(true);
-    const decodedToken = await auth.currentUser?.getIdTokenResult();
-
-    return decodedToken?.claims?.stripeRole ? true : false;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-}
-
 export function listenToCheckoutSession(
   uid: string,
   sessionId: string,

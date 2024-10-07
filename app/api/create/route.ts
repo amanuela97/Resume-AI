@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     if (inputTokenCount > maxTokens) {
       return NextResponse.json(
         {
-          error: `Input text is too long. It has ${inputTokenCount} tokens, but the maximum allowed is ${maxTokens}.`,
+          error: `Input text is too long. Either reduce the length of the job description or upload a smaller file.`,
         },
         { status: 400 }
       );

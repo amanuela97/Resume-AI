@@ -104,7 +104,7 @@ export default function CustomerReviews() {
   if (visibleReviews.length <= 0) return null;
 
   return (
-    <section className="pt-40 px-8 max-w-6xl mx-auto mb-2">
+    <section className="py-40 px-8 max-w-6xl mx-auto mb-2">
       <h2 ref={titleTwoRef} className="text-3xl font-bold text-center mb-8">
         What Our Customers Say
       </h2>
