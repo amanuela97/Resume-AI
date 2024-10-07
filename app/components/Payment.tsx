@@ -80,13 +80,11 @@ export default function Payment() {
 
   if (loading) return <p>loading...</p>;
 
-  if (!subscription) return <p>unable to display payment details.</p>;
-
   return (
     <>
       {user && (
         <CardContent className="space-y-6">
-          {subscription.status !== "active" ? (
+          {!subscription || subscription.status !== "active" ? (
             <div className="flex flex-col items-start w-fit p-2 space-y-2">
               <span>you are not a premium user</span>
               <Button
