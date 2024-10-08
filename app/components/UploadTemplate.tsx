@@ -81,6 +81,12 @@ export default function UploadTemplate() {
         docxFile,
         isPremium: isPremium,
       });
+
+      setName("");
+      setIsPremium(false);
+      setPreviewImage(null);
+      setDocxFile(null);
+      setSelectedColors([]);
     } else {
       toast.error("missing required field");
     }
