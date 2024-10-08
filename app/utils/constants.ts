@@ -85,6 +85,11 @@ export const colorOptions: ColorOption[] = [
   { value: "#ffffff", label: "White" },
 ];
 
+export const planOptions = [
+  { value: false, label: "no" },
+  { value: true, label: "yes" },
+];
+
 export const features = [
   {
     title: "Smart Resume Builder",

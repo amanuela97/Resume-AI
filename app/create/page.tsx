@@ -18,15 +18,24 @@ import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { formatCoverLetterBody } from "../utils/helper";
 import { serverTimestamp } from "firebase/firestore";
+import PremiumFeatureModal from "../components/PremiumFeatureModal";
+import { useSubscription } from "../utils/stripe/useSubscribtion";
 
 export default function Create() {
+  const [showModal, setShowModal] = useState(false);
   const [isVisible, setIsVisible] = useState<null | ContentType>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [isLoadingCoverLetter, setIsLoadingCoverLetter] = useState(false);
   const { user, file, jobDescription, setCoverLetter, setAnalysis } =
     useAppStore();
+  const { subscription } = useSubscription(user);
 
   const handleCreate = async (contentType: ContentType) => {
+    if (!subscription || subscription.status !== "active") {
+      setShowModal(true);
+      return;
+    }
+
     if (!file || !jobDescription) {
       toast.error("Please upload a resume and provide a job description.");
       return;
@@ -146,6 +155,12 @@ export default function Create() {
         </Button>
         {isVisible === ContentType.coverLetter && <CoverLetterComponent />}
         {isVisible === ContentType.analysis && <AnalysisResults />}
+        <PremiumFeatureModal
+          title="Premium Feature"
+          description="This feature is only available to premium users. Upgrade your account to access this and many other exclusive features!"
+          onAcknowledge={() => setShowModal(false)}
+          triggerOpen={showModal}
+        />
       </main>
     </ProtectedRoute>
   );

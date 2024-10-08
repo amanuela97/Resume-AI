@@ -9,6 +9,13 @@ import { ColorOption } from "../utils/types";
 import { colorOptions } from "../utils/constants";
 import { uploadTemplate } from "../utils/firebase";
 import { toast } from "react-toastify";
+import {
+  Select as SelectUI,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 
 const colorStyles: StylesConfig<ColorOption, true> = {
   option: (styles, { data }) => ({
@@ -61,6 +68,7 @@ export default function UploadTemplate() {
     []
   );
   const [docxFile, setDocxFile] = useState<File | null>(null);
+  const [isPremium, setIsPremium] = useState<boolean>(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,6 +79,7 @@ export default function UploadTemplate() {
         previewImage,
         colorsArray: selectedColors.map((color) => color.value),
         docxFile,
+        isPremium: isPremium,
       });
     } else {
       toast.error("missing required field");
@@ -125,6 +134,30 @@ export default function UploadTemplate() {
               placeholder="Select colors..."
               required
             />
+          </div>
+          <div>
+            <Label htmlFor="isPremium">Premium Template</Label>
+            <SelectUI
+              onValueChange={(value: string) => setIsPremium(value === "true")}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Yes or No" />
+              </SelectTrigger>
+              <SelectContent className="dark:text-white text-black bg-card">
+                <SelectItem
+                  value="true"
+                  className="hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                >
+                  Yes
+                </SelectItem>
+                <SelectItem
+                  value="false"
+                  className="hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                >
+                  No
+                </SelectItem>
+              </SelectContent>
+            </SelectUI>
           </div>
           <div>
             <Label htmlFor="docxFile">Document File (DOCX)</Label>
