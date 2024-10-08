@@ -38,13 +38,13 @@ import {
   FireBaseDate,
   Reply,
   Review,
-  Subscription,
   TemplateMetada,
   uploadTemplateProp,
 } from "./types";
 import { isAdmin } from "./helper";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
+import imageCompression from "browser-image-compression";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -251,9 +251,18 @@ export const uploadTemplate = async ({
     const docxSnapshot = await uploadBytes(docxFileRef, docxFile);
     const docxFileURL = await getDownloadURL(docxSnapshot.ref);
 
+    // Compress the preview image before uploading
+    const options = {
+      maxSizeMB: 0.5, // Limit to 500KB
+      maxWidthOrHeight: 1024, // Maximum width/height
+      useWebWorker: true, // Use web worker for performance
+    };
+
+    const compressedImage = await imageCompression(previewImage, options);
+
     // Upload the preview image to Firebase Storage
     const imageFileRef = ref(storage, `templates/${name}-preview-${id}.png`);
-    const imageSnapshot = await uploadBytes(imageFileRef, previewImage);
+    const imageSnapshot = await uploadBytes(imageFileRef, compressedImage);
     const previewImageURL = await getDownloadURL(imageSnapshot.ref);
 
     // Store the metadata in Firestore

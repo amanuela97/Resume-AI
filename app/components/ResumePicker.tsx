@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ImageNext from "next/image";
-import { Search, Plus, Check, Download } from "lucide-react";
+import { Search, Plus, Check, Download, Lock } from "lucide-react";
 import { Input } from "@/app/components/ui/input";
 import {
   Popover,
@@ -65,16 +65,18 @@ export default function ResumePicker() {
 
   useEffect(() => {
     const loadImage = (template: TemplateMetada) => {
-      const img = new Image();
-      img.src = template.previewImageURL;
-      img.alt = template.name;
-      img.onload = () => {
-        setImagesLoaded((prev) => ({ ...prev, [template.id]: true }));
-      };
+      if (!imagesLoaded[template.id]) {
+        const img = new Image();
+        img.src = template.previewImageURL;
+        img.alt = template.name;
+        img.onload = () => {
+          setImagesLoaded((prev) => ({ ...prev, [template.id]: true }));
+        };
+      }
     };
 
     filteredTemplates.forEach(loadImage);
-  }, []);
+  }, [filteredTemplates]);
 
   const handleSelection = async (template: TemplateMetada) => {
     if (template.isPremium) {
@@ -173,7 +175,7 @@ export default function ResumePicker() {
                   <Tooltip key={template.id}>
                     <TooltipTrigger asChild>
                       <div
-                        className={`cursor-pointer rounded-lg overflow-hidden border border-gray-400 ${
+                        className={`cursor-pointer rounded-lg overflow-hidden border border-gray-400 relative ${
                           selectedTemplate?.id === template.id
                             ? "ring-2 ring-primary"
                             : ""
@@ -181,20 +183,33 @@ export default function ResumePicker() {
                         onClick={() => handleSelection(template)}
                       >
                         {imagesLoaded[template.id] ? (
-                          <ImageNext
-                            src={template.previewImageURL}
-                            alt={template.name}
-                            width={300} // Desktop dimensions
-                            height={420}
-                            className="object-cover h-auto" // Makes image responsive
-                          />
+                          <>
+                            <ImageNext
+                              src={template.previewImageURL}
+                              alt={template.name}
+                              width={300}
+                              height={420}
+                              layout="responsive"
+                              loading="lazy"
+                            />
+                            {template.isPremium && (
+                              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                <div className="bg-white rounded-full p-2">
+                                  <Lock className="text-black w-6 h-6" />
+                                </div>
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <SkeletonLoader />
                         )}
                       </div>
                     </TooltipTrigger>
                     <TooltipContent className="bg-card">
-                      <p>{template.name}</p>
+                      <p>
+                        {template.name}
+                        {template.isPremium ? " (Premium)" : ""}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 ))
