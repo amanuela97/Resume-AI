@@ -109,12 +109,12 @@ export default function CustomerReviews() {
         What Our Customers Say
       </h2>
       <p className="text-base font-bold text-center mb-8">
-        want to leave a review?{" "}
+        Want to leave a review?{" "}
         <Link
           href="/reviews"
           className="text-base font-bold text-blue-500 hover:underline p-1"
         >
-          leave a review
+          Leave a review
         </Link>
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
