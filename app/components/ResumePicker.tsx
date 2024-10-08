@@ -41,7 +41,7 @@ export default function ResumePicker() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [docBuffer, setDocBuffer] = useState<ArrayBuffer | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
-  const { resumeInfo, templates, setTemplates, hasHydrated } = useAppStore();
+  const { resumeInfo, templates, setTemplates } = useAppStore();
 
   const filteredTemplates = templates.filter((template) => {
     const matchesSearchQuery = template.name
@@ -55,14 +55,13 @@ export default function ResumePicker() {
 
   useEffect(() => {
     const handleFetchTemplates = async () => {
-      if ((hasHydrated && !templates) || templates.length === 0) {
-        const templates = await fetchTemplateMetadata();
-        setTemplates(templates);
-      }
+      const templates = await fetchTemplateMetadata();
+      if (!templates || templates.length === 0) return;
+      setTemplates(templates);
     };
 
     handleFetchTemplates();
-  }, [templates, setTemplates, hasHydrated]);
+  }, []);
 
   useEffect(() => {
     const loadImage = (template: TemplateMetada) => {

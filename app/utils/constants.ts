@@ -124,7 +124,7 @@ export const pricingData: { [key: string]: PricingPlan } = {
         id: "",
       },
     },
-    features: ["Create unlimited resumes", "Access to all templates"],
+    features: ["Create unlimited resumes", "Access to limited templates"],
     buttonText: "Get Started",
   },
   premium: {
