@@ -85,6 +85,11 @@ export const colorOptions: ColorOption[] = [
   { value: "#ffffff", label: "White" },
 ];
 
+export const planOptions = [
+  { value: false, label: "no" },
+  { value: true, label: "yes" },
+];
+
 export const features = [
   {
     title: "Smart Resume Builder",
@@ -119,7 +124,7 @@ export const pricingData: { [key: string]: PricingPlan } = {
         id: "",
       },
     },
-    features: ["Create unlimited resumes", "Access to all templates"],
+    features: ["Create unlimited resumes", "Access to limited templates"],
     buttonText: "Get Started",
   },
   premium: {

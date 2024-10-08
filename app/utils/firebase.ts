@@ -239,6 +239,7 @@ export const uploadTemplate = async ({
   previewImage,
   colorsArray,
   docxFile,
+  isPremium,
 }: uploadTemplateProp) => {
   const storage = getStorage();
   const db = getFirestore();
@@ -261,6 +262,7 @@ export const uploadTemplate = async ({
       docxFileURL,
       previewImageURL,
       colors: colorsArray,
+      isPremium,
     });
     console.log("File uploaded and metadata saved successfully.");
     toast.success("Template uploaded successfully.");

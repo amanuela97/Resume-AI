@@ -52,6 +52,7 @@ export type uploadTemplateProp = {
   previewImage: File;
   colorsArray: string[];
   docxFile: File;
+  isPremium: boolean;
 };
 
 export type TemplateMetada = {
@@ -60,6 +61,7 @@ export type TemplateMetada = {
   previewImageURL: string;
   colors: string[];
   docxFileURL: string;
+  isPremium: boolean;
 };
 
 export type CustomUser = {

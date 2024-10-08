@@ -30,8 +30,10 @@ import { colorOptions } from "../utils/constants";
 import { TemplateMetada } from "../utils/types";
 import { fetchTemplateMetadata } from "../utils/firebase";
 import SkeletonLoader from "@/app/components/SkeletonLoader";
+import PremiumFeatureModal from "./PremiumFeatureModal";
 
 export default function ResumePicker() {
+  const [showModal, setShowModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] =
     useState<TemplateMetada | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,7 +41,7 @@ export default function ResumePicker() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [docBuffer, setDocBuffer] = useState<ArrayBuffer | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
-  const { resumeInfo, templates, setTemplates, hasHydrated } = useAppStore();
+  const { resumeInfo, templates, setTemplates } = useAppStore();
 
   const filteredTemplates = templates.filter((template) => {
     const matchesSearchQuery = template.name
@@ -53,14 +55,13 @@ export default function ResumePicker() {
 
   useEffect(() => {
     const handleFetchTemplates = async () => {
-      if ((hasHydrated && !templates) || templates.length === 0) {
-        const templates = await fetchTemplateMetadata();
-        setTemplates(templates);
-      }
+      const templates = await fetchTemplateMetadata();
+      if (!templates || templates.length === 0) return;
+      setTemplates(templates);
     };
 
     handleFetchTemplates();
-  }, [templates, setTemplates, hasHydrated]);
+  }, []);
 
   useEffect(() => {
     const loadImage = (template: TemplateMetada) => {
@@ -76,6 +77,10 @@ export default function ResumePicker() {
   }, []);
 
   const handleSelection = async (template: TemplateMetada) => {
+    if (template.isPremium) {
+      setShowModal(true);
+      return;
+    }
     setSelectedTemplate(template);
     const formData = convertToFormData(resumeInfo);
     formData.append("template", template.docxFileURL);
@@ -181,7 +186,7 @@ export default function ResumePicker() {
                             alt={template.name}
                             width={300} // Desktop dimensions
                             height={420}
-                            className="object-cover" // Makes image responsive
+                            className="object-cover h-auto" // Makes image responsive
                           />
                         ) : (
                           <SkeletonLoader />
@@ -198,6 +203,12 @@ export default function ResumePicker() {
               )}
             </div>
           </div>
+          <PremiumFeatureModal
+            title="Premium Feature"
+            description="This template is only available to premium users. Upgrade your account to access all the templates!"
+            onAcknowledge={() => setShowModal(false)}
+            triggerOpen={showModal}
+          />
         </div>
 
         <div className="w-full lg:w-1/2 p-4 flex items-center justify-center min-h-[40vh] lg:min-h-0 relative mb-6">
