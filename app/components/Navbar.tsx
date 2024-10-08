@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/app/store";
 import {
-  FileChartColumn,
   Files,
   FileArchive,
   LogOut,
@@ -22,6 +21,7 @@ import { useState } from "react";
 import Image from "next/image";
 import ThemeSwitcher from "./ThemeSwitcher";
 import { signOut } from "../utils/firebase";
+import LogoSVG from "./LogoSVG";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,7 +38,7 @@ export default function Navbar() {
     <nav className="bg-background text-primary-foreground p-2 sm:p-4 shadow-md mb-2">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <FileChartColumn className="h-6 w-6" />
+          <LogoSVG />
           <Link href="/" className="text-base sm:text-2xl font-bold">
             Resume AI
           </Link>

@@ -26,6 +26,7 @@
     "@radix-ui/react-tooltip": "1.1.2",
     "@stripe/stripe-js": "4.6.0",
     "axios": "1.7.7",
+    "browser-image-compression": "2.0.2",
     "canvas": "2.11.2",
     "cheerio": "1.0.0",
     "class-variance-authority": "0.7.0",
@@ -75,6 +76,7 @@
   },
   "devDependencies": {
     "@shadcn/ui": "0.0.4",
+    "@svgr/webpack": "8.1.0",
     "@types/crypto-js": "4.2.2",
     "@types/formidable": "3.4.5",
     "@types/html-to-pdfmake": "2.4.4",

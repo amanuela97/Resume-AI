@@ -12,7 +12,7 @@ export const metadata = {
   title: "Resume AI",
   description: "AI-powered resume Tool for analysis and cover letter creation",
   icons: {
-    icon: "/icon.ico",
+    icon: "/favicon-32x32.ico",
   },
 };
 
