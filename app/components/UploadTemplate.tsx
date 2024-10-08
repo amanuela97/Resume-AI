@@ -73,7 +73,7 @@ export default function UploadTemplate() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // TODO: Implement form submission logic
-    if (name && previewImage && selectedColors && docxFile) {
+    if (name && previewImage && selectedColors && docxFile && isPremium) {
       await uploadTemplate({
         name,
         previewImage,
