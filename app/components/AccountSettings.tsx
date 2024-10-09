@@ -89,7 +89,7 @@ export default function AccountSettings() {
             </span>
             {user?.lastSignInTime && (
               <span className="text-xs text-muted-foreground mt-2">
-                Last sign in: {moment(user.lastSignInTime).fromNow()}
+                Last Sign in: {moment(user.lastSignInTime).fromNow()}
               </span>
             )}
             {user?.lastSignInTime && (

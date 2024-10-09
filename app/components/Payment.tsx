@@ -34,7 +34,7 @@ export default function Payment() {
 
   const manageSubscription = async () => {
     if (!user) {
-      console.log("user not found");
+      console.log("User not found");
       return;
     }
 
@@ -103,7 +103,7 @@ export default function Payment() {
           ) : (
             <div className="flex flex-col">
               <span className="text-sm text-muted-foreground">
-                subscription: {subscription?.role}
+                Subscription: {subscription?.role}
               </span>
               <span className="text-sm text-muted-foreground text-green-500">
                 Status: {subscription?.status}
