@@ -81,19 +81,19 @@ export default function AccountSettings() {
             className="h-12 hidden sm:block bg-gray-400"
           />
           <div className="flex flex-col">
-            <span className="text-lg font-semibold">
+            <span className="text-lg font-semibold mt-2">
               {user?.displayName || "default"}
             </span>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-muted-foreground mt-2">
               {user?.email || "example@gmail.com"}
             </span>
             {user?.lastSignInTime && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground mt-2">
                 Last Sign in: {moment(user.lastSignInTime).fromNow()}
               </span>
             )}
             {user?.lastSignInTime && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground mt-2">
                 Role: {user.role}
               </span>
             )}
