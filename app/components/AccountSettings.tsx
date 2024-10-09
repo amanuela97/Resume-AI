@@ -89,12 +89,12 @@ export default function AccountSettings() {
             </span>
             {user?.lastSignInTime && (
               <span className="text-xs text-muted-foreground">
-                last sign in: {moment(user.lastSignInTime).fromNow()}
+                Last Sign in: {moment(user.lastSignInTime).fromNow()}
               </span>
             )}
             {user?.lastSignInTime && (
               <span className="text-xs text-muted-foreground">
-                role: {user.role}
+                Role: {user.role}
               </span>
             )}
           </div>
