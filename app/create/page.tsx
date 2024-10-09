@@ -9,6 +9,7 @@ import CoverLetterComponent from "@/app/components/CoverLetter";
 import { useAppStore } from "../store";
 import { Button } from "../components/ui/button";
 import { toast } from "react-toastify";
+import { RiLockStarFill } from "react-icons/ri";
 import {
   AnalysisResponseType,
   ContentType,
@@ -30,8 +31,10 @@ export default function Create() {
     useAppStore();
   const { subscription } = useSubscription(user);
 
+  const isPremiumUser = subscription?.status === "active";
+
   const handleCreate = async (contentType: ContentType) => {
-    if (!subscription || subscription.status !== "active") {
+    if (!isPremiumUser) {
       setShowModal(true);
       return;
     }
@@ -136,7 +139,10 @@ export default function Create() {
               Analyzing...
             </>
           ) : (
-            "Analyze Resume"
+            <>
+              {!isPremiumUser && <RiLockStarFill className="inline-block mr-2" />}
+              Analyze Resume
+            </>
           )}
         </Button>
         <Button
@@ -150,7 +156,10 @@ export default function Create() {
               Creating Cover Letter...
             </>
           ) : (
-            "Create Cover Letter"
+            <>
+              {!isPremiumUser && <RiLockStarFill className="inline-block mr-2" />}
+              Create Cover Letter
+            </>
           )}
         </Button>
         {isVisible === ContentType.coverLetter && <CoverLetterComponent />}
