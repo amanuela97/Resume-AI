@@ -87,16 +87,14 @@ export interface AnalysisResponseType {
 }
 
 export interface CoverLetterResponseType {
-  coverLetter: {
-    introduction: string;
-    body: {
-      relevant_experience: String;
-      skills_match: String;
-      cultural_fit: String;
-      motivation: String;
-    };
-    conclusion: string;
+  introduction: string;
+  body: {
+    relevant_experience: String;
+    skills_match: String;
+    cultural_fit: String;
+    motivation: String;
   };
+  conclusion: string;
 }
 export type FireBaseDate = Timestamp | FieldValue;
 
@@ -117,7 +115,7 @@ export enum ContentType {
 
 export type CoverLetter = {
   id: string;
-  title: string;
+  title?: string;
   userId: string;
   content: string;
   updatedAt: FireBaseDate;

@@ -98,17 +98,42 @@ export async function POST(request: Request) {
       model: "gpt-3.5-turbo",
       temperature: 0,
       maxTokens: 1000,
+      streaming: true,
     });
 
-    // Use the 'generate' method to get the full LLMResult
-    const result: LLMResult = await llm.generate([prompt]);
+    // Step 7: Return a ReadableStream to handle response streaming
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          let responseText = "";
 
-    // Step 7: Parse the response with the structured parser
-    const parsedResponse = await parser.parse(result.generations[0][0].text);
+          // Create an async iterator for the streamed responses
+          for await (const chunk of await llm.stream(prompt)) {
+            const textChunk = chunk;
+            responseText += textChunk;
 
-    // Return the JSON result
-    return NextResponse.json({
-      [contentType]: parsedResponse,
+            // Enqueue the chunk to the stream
+            controller.enqueue(new TextEncoder().encode(textChunk));
+          }
+
+          // When streaming is complete, parse the full response
+          const parsedResponse = await parser.parse(responseText);
+
+          // Final result after all chunks have been processed
+          controller.enqueue(
+            new TextEncoder().encode(
+              JSON.stringify({ [contentType]: parsedResponse })
+            )
+          );
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("Error in analyze API:", error);
