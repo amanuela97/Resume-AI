@@ -25,12 +25,12 @@ export async function createCheckoutSession(uid: string, price: string) {
 
   // Wait for the CheckoutSession to get attached by the Stripe Firebase extension
   onSnapshot(checkoutSessionRef, async (snap) => {
-    const { sessionId } = snap.data() as { sessionId: string };
-    if (sessionId) {
-      // We have a session, let's redirect to Checkout
-      // Init Stripe
+    if (snap.exists() && snap.data()?.sessionId) {
+      const sessionId = snap.data()?.sessionId as string;
       const stripe = await initializeStripe();
       stripe.redirectToCheckout({ sessionId });
+    } else {
+      console.log("sessionId is undefined or not yet available.");
     }
   });
 }

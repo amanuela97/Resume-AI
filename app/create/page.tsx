@@ -11,24 +11,34 @@ import { Button } from "../components/ui/button";
 import { toast } from "react-toastify";
 import { RiLockStarFill } from "react-icons/ri";
 import {
+  Analysis,
   AnalysisResponseType,
   ContentType,
+  CoverLetter,
   CoverLetterResponseType,
 } from "../utils/types";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { formatCoverLetterBody } from "../utils/helper";
 import { serverTimestamp } from "firebase/firestore";
 import PremiumFeatureModal from "../components/PremiumFeatureModal";
 import { useSubscription } from "../utils/stripe/useSubscribtion";
+import { parse, STR, OBJ } from "partial-json";
+import { formatCoverLetterBody } from "../utils/helper";
 
 export default function Create() {
   const [showModal, setShowModal] = useState(false);
   const [isVisible, setIsVisible] = useState<null | ContentType>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [isLoadingCoverLetter, setIsLoadingCoverLetter] = useState(false);
-  const { user, file, jobDescription, setCoverLetter, setAnalysis } =
-    useAppStore();
+  const {
+    user,
+    file,
+    jobDescription,
+    setCoverLetter,
+    setAnalysis,
+    analysis,
+    coverLetter,
+  } = useAppStore();
   const { subscription } = useSubscription(user);
 
   const isPremiumUser = subscription?.status === "active";
@@ -78,26 +88,29 @@ export default function Create() {
         );
       }
 
-      if (contentType === ContentType.analysis) {
-        const { analysis }: AnalysisResponseType = await response.json();
-        setAnalysis({
-          ...analysis,
-          updatedAt: serverTimestamp(),
-          createdAt: serverTimestamp(),
-        });
-      } else if (contentType === ContentType.coverLetter) {
-        const { coverLetter }: CoverLetterResponseType = await response.json();
-        setCoverLetter({
-          title: coverLetter.introduction,
-          userId: user.uid,
-          id: uuidv4(),
-          content: formatCoverLetterBody(coverLetter), //
-          updatedAt: serverTimestamp(),
-          createdAt: serverTimestamp(),
-        });
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No readable stream available");
+
+      const decoder = new TextDecoder();
+      let partialData = ""; // Variable to hold partial JSON chunks
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Decode the chunk and append it to partialData
+        partialData += decoder.decode(value, { stream: true });
+
+        // Parse the partial JSON data with `Allow.STR | Allow.OBJ` to allow incomplete strings and objects
+        const parsedChunk = parse(partialData, STR | OBJ);
+        // Update state based on the parsed chunk
+        updateStateFromStream(parsedChunk, contentType);
       }
 
-      setIsVisible(contentType);
+      // Attempt to fully parse the JSON once the stream is complete
+      const finalData = parse(partialData); // Parse the final complete data
+      updateStateFromStream(finalData, contentType);
+
       toast.success(`${contentType} created successfully!`);
     } catch (error: any) {
       console.error(error);
@@ -108,6 +121,51 @@ export default function Create() {
       } else if (contentType === ContentType.coverLetter) {
         setIsLoadingCoverLetter(false);
       }
+    }
+  };
+
+  const updateStateFromStream = (
+    data: Partial<AnalysisResponseType | CoverLetterResponseType>,
+    contentType: ContentType
+  ) => {
+    setIsVisible(contentType);
+    if (contentType === ContentType.analysis) {
+      const analysisData = data as Partial<Analysis>;
+      if (!analysisData) return;
+      const { match_score, strengths, weaknesses, recommendation } =
+        analysisData ?? {};
+      setAnalysis({
+        ...analysis,
+        match_score: match_score ?? 0, // Ensure match_score is always a number
+        recommendation: recommendation ?? "", // Ensure recommendation is always a string
+        strengths: strengths ?? [],
+        weaknesses: weaknesses ?? [],
+        updatedAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
+      });
+    } else if (contentType === ContentType.coverLetter) {
+      const coverLetterData = data as Partial<CoverLetterResponseType>;
+      if (!coverLetterData || !user?.uid) return;
+      const { introduction, body, conclusion } = coverLetterData ?? {};
+      const contentData = {
+        introduction: introduction ?? "",
+        body: {
+          relevant_experience: body?.relevant_experience ?? "",
+          skills_match: body?.skills_match ?? "",
+          cultural_fit: body?.cultural_fit ?? "",
+          motivation: body?.motivation ?? "",
+        },
+        conclusion: conclusion ?? "",
+      };
+      setCoverLetter({
+        ...coverLetter,
+        title: introduction ?? "",
+        userId: user.uid,
+        id: uuidv4(),
+        content: formatCoverLetterBody(contentData), //
+        updatedAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
+      });
     }
   };
 
@@ -140,7 +198,9 @@ export default function Create() {
             </>
           ) : (
             <>
-              {!isPremiumUser && <RiLockStarFill className="inline-block mr-2" />}
+              {!isPremiumUser && (
+                <RiLockStarFill className="inline-block mr-2" />
+              )}
               Analyze Resume
             </>
           )}
@@ -157,7 +217,9 @@ export default function Create() {
             </>
           ) : (
             <>
-              {!isPremiumUser && <RiLockStarFill className="inline-block mr-2" />}
+              {!isPremiumUser && (
+                <RiLockStarFill className="inline-block mr-2" />
+              )}
               Create Cover Letter
             </>
           )}

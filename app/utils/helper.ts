@@ -107,7 +107,7 @@ export const formatToText = (jsonData: Analysis | string) => {
 
 // Function to format the cover letter body
 export const formatCoverLetterBody = (
-  content: CoverLetterResponseType[ContentType.coverLetter]
+  content: CoverLetterResponseType
 ): string => {
   return `
       <h1>Introduction</h1>
