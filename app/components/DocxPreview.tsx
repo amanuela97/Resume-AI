@@ -1,68 +1,58 @@
 // components/DocxPreview.tsx
-import React, { useEffect, useRef, useState } from "react";
-import { renderAsync } from "docx-preview";
-import html2canvas from "html2canvas";
+import React, { useEffect, useState } from "react";
 import { FileQuestion } from "lucide-react";
-import Image from "next/image";
 import ShareResume from "./ShareResume";
-
+import { Document, Page, pdfjs } from "react-pdf";
 interface DocxPreviewProps {
-  docBuffer: ArrayBuffer | null;
+  pdfBlob: Blob | null;
   templateName: string;
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const DocxPreview = ({ docBuffer, templateName }: DocxPreviewProps) => {
-  const previewRef = useRef<HTMLDivElement>(null);
+console.log(pdfjs.version);
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+
+const DocxPreview = ({
+  pdfBlob,
+  templateName,
+  isLoading,
+  setIsLoading,
+}: DocxPreviewProps) => {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const generatePreview = async () => {
-      if (previewRef.current && docBuffer) {
-        setIsLoading(true);
-        previewRef.current.style.position = "absolute";
-        previewRef.current.style.top = "-9999px";
-        previewRef.current.style.display = "block";
-        // Render the docx file into the previewRef element
-        await renderAsync(docBuffer, previewRef.current);
-
-        const canvas = await html2canvas(previewRef.current, {
-          useCORS: true,
-          logging: false,
-        });
-        previewRef.current.style.position = "";
-        previewRef.current.style.display = "none";
-
-        const originalConsoleLog = console.log;
-        console.log = function () {};
-        const imageUrl = canvas.toDataURL("image/png");
-        console.log = originalConsoleLog;
-
-        setThumbnailUrl(imageUrl);
-
+      if (pdfBlob) {
+        const url = URL.createObjectURL(pdfBlob);
+        setThumbnailUrl(url);
+        console.log(url);
         setIsLoading(false);
       }
     };
 
     generatePreview();
-  }, [docBuffer]);
+  }, [pdfBlob]);
 
   return (
     <div className="mt-6">
       {thumbnailUrl && (
         <ShareResume imageUrl={thumbnailUrl} templateName={templateName} />
       )}
-      <div
-        ref={previewRef}
-        style={{ display: "block", position: "absolute", top: "-9999px" }}
-      />
       {thumbnailUrl ? (
-        <Image
-          src={thumbnailUrl}
-          alt="Document Thumbnail"
-          width={400}
-          height={400}
-        />
+        <>
+          <Document
+            file={thumbnailUrl}
+            onLoadSuccess={() => console.log("successfully loaded preview")}
+            loading="Loading PDF..."
+          >
+            <Page
+              pageNumber={1} // Show only the first page
+              renderTextLayer={false}
+              renderAnnotationLayer={false}
+            />
+          </Document>
+        </>
       ) : (
         <>
           {!isLoading ? (

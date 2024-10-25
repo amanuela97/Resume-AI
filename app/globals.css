@@ -120,6 +120,12 @@ body::-webkit-scrollbar-thumb {
   border-radius: 10px;
 }
 
+.textLayer,
+.react-pdf__Page__textContent,
+.react-pdf__Page__annotations {
+  display: none !important;
+}
+
 .body-background {
   width: 100%; /* Adjust as necessary */
   background-image: url("/topography.svg");

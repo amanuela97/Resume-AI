@@ -31,6 +31,7 @@ import { TemplateMetada } from "../utils/types";
 import { fetchTemplateMetadata } from "../utils/firebase";
 import SkeletonLoader from "@/app/components/SkeletonLoader";
 import PremiumFeatureModal from "./PremiumFeatureModal";
+import axios from "axios";
 
 export default function ResumePicker() {
   const [showModal, setShowModal] = useState(false);
@@ -40,7 +41,9 @@ export default function ResumePicker() {
   const [selectedColor, setSelectedColor] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [docBuffer, setDocBuffer] = useState<ArrayBuffer | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { resumeInfo, templates, setTemplates } = useAppStore();
 
   const filteredTemplates = templates.filter((template) => {
@@ -83,6 +86,7 @@ export default function ResumePicker() {
       setShowModal(true);
       return;
     }
+    setIsLoading(true);
     setSelectedTemplate(template);
     const formData = convertToFormData(resumeInfo);
     formData.append("template", template.docxFileURL);
@@ -96,31 +100,81 @@ export default function ResumePicker() {
 
     if (response.ok) {
       const buffer = await response.arrayBuffer();
+      const pdfBlob = await convertDocxBufferToPdf({ docBuffer: buffer });
       setDocBuffer(buffer);
+      setPdfBlob(pdfBlob);
     } else {
       alert("Failed to generate document");
     }
   };
 
-  const downloadFile = async () => {
-    if (!docBuffer) {
-      console.log("docBuffer undefined");
-      toast.error("Download Failed");
+  const downloadFile = async (type: string) => {
+    let mimeType: string = "";
+    let fileName: string = "";
+
+    if (type === "docx") {
+      if (!docBuffer) {
+        console.log("docBuffer undefined");
+        toast.error("Download Failed");
+        return;
+      }
+      mimeType =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      fileName = "resume.docx";
+    } else if (type === "pdf") {
+      if (!pdfBlob) {
+        console.log("pdfBlob undefined");
+        toast.error("Download Failed");
+        return;
+      }
+      mimeType = "application/pdf";
+      fileName = "resume.pdf";
+    } else {
+      console.log("Invalid file type");
+      toast.error("Invalid file type");
       return;
     }
-
     setIsDownloading(true);
-    let blob = new Blob([docBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    });
-
-    const url = window.URL.createObjectURL(blob);
+    const downloadBlob =
+      type === "docx" ? new Blob([docBuffer!], { type: mimeType }) : pdfBlob;
+    const url = window.URL.createObjectURL(downloadBlob!);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "resume.docx";
+    link.download = fileName;
     link.click();
     window.URL.revokeObjectURL(url);
     setIsDownloading(false);
+  };
+
+  const convertDocxBufferToPdf = async ({
+    docBuffer,
+  }: {
+    docBuffer: ArrayBuffer;
+  }) => {
+    const apiKey = process.env.NEXT_PUBLIC_CLOUDMERSIVE_API_KEY; // Ensure you have this in your .env.local or .env.production
+    const url = "https://api.cloudmersive.com/convert/docx/to/pdf";
+
+    try {
+      const response = await axios.post(url, docBuffer, {
+        headers: {
+          "Content-Type":
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          Apikey: apiKey,
+        },
+        responseType: "blob", // Specify the response type as Blob
+      });
+
+      // Check if the response is valid
+      if (response.status !== 200) {
+        throw new Error("Failed to convert DOCX to PDF");
+      }
+
+      const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+      return pdfBlob;
+    } catch (error) {
+      console.error("Error converting DOCX to PDF:", error);
+      throw error;
+    }
   };
 
   return (
@@ -189,7 +243,6 @@ export default function ResumePicker() {
                               alt={template.name}
                               width={300}
                               height={420}
-                              layout="responsive"
                               loading="lazy"
                             />
                             {template.isPremium && (
@@ -239,20 +292,28 @@ export default function ResumePicker() {
                   {isDownloading ? "Downloading..." : "Download"}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent className="bg-card " align="end">
                 <DropdownMenuItem
-                  onClick={() => downloadFile()}
-                  className="hover:bg-card cursor-pointer"
+                  onClick={() => downloadFile("docx")}
+                  className="hover:bg-black/20 cursor-pointer"
                 >
                   Download Docx
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => downloadFile("pdf")}
+                  className="hover:bg-black/20 cursor-pointer"
+                >
+                  Download PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
           <div className="w-full h-full flex items-center justify-center mt-6">
             <DocxPreview
-              docBuffer={docBuffer}
+              pdfBlob={pdfBlob}
               templateName={selectedTemplate?.name ?? "default"}
+              isLoading={isLoading}
+              setIsLoading={setIsLoading}
             />
           </div>
         </div>

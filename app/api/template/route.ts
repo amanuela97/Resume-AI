@@ -97,7 +97,6 @@ export async function POST(req: Request) {
     // Generate the final document as a buffer
     const docBuffer = doc.getZip().generate({ type: "nodebuffer" });
 
-    // Set the response headers and return the document as a download
     return new Response(docBuffer, {
       status: 200,
       headers: {
