@@ -100,9 +100,7 @@ export default function ResumePicker() {
 
     if (response.ok) {
       const buffer = await response.arrayBuffer();
-      const pdfBlob = await convertDocxBufferToPdf({ docBuffer: buffer });
       setDocBuffer(buffer);
-      setPdfBlob(pdfBlob);
     } else {
       alert("Failed to generate document");
     }
@@ -126,6 +124,11 @@ export default function ResumePicker() {
         console.log("pdfBlob undefined");
         toast.error("Download Failed");
         return;
+      }
+
+      if (docBuffer) {
+        const pdfBlob = await convertDocxBufferToPdf({ docBuffer });
+        setPdfBlob(pdfBlob);
       }
       mimeType = "application/pdf";
       fileName = "resume.pdf";
