@@ -291,7 +291,7 @@ export const fetchTemplateMetadata = async (): Promise<TemplateMetada[]> => {
     })) as TemplateMetada[];
     return templateList;
   } catch (error) {
-    console.error("Error fetching cover letters", error);
+    console.error("Error fetching templateMetadata", error);
     throw error;
   }
 };
@@ -308,8 +308,20 @@ export const uploadImageToFirebase = async ({
   const storageRef = ref(storage, `resumeImages/${uid}/${templateName}.png`);
 
   try {
+    // Fetch the image from the URL
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+
+    // Convert the Blob to a Base64 data URL
+    const reader = new FileReader();
+    const base64Data = await new Promise<string>((resolve, reject) => {
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
     // Upload the base64 image string to Firebase
-    await uploadString(storageRef, imageUrl, "data_url");
+    await uploadString(storageRef, base64Data, "data_url");
 
     // Get the download URL
     const url = await getDownloadURL(storageRef);
